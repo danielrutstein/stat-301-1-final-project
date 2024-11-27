@@ -4,7 +4,56 @@ library(nflplotR)
 library(tidymodels)
 
 # Database setup ---- 
-## Load Datasets ----
+# run this
+draft_prospects <- read_csv("data/nfl_draft_prospects.csv", guess_max = 13000)|>
+  select(
+    player_id, player_name, overall, school_name, school_abbr, pick, link, traded, trade_note, pick, weight, height, pos_rk, ovr_rk, draft_year, grade
+  ) |> rename(
+    pick_rd = pick, college_mascot = school_name, college_abbr = school_abbr 
+  )
+draft_fbr_11_20 <- readxl::read_xlsx("data/nfldraft_11_20.xlsx")
+coaches_fbr_11_20 <- readxl::read_xlsx("data/nfl_coaches_11_20.xlsx")
+draft <- draft_fbr_11_20 |>
+  inner_join(draft_prospects, join_by(pick == overall, year == draft_year)) |>
+  left_join(coaches_fbr_11_20, join_by(year, team))
+draft <- draft |>
+  complete(fill = list(rel_w_av = 0, w_av = 0, dr_av = 0, gp = 0)) 
+draft <- draft |>
+  mutate(
+    team = fct_recode(team,
+                      "LAC" = "SDG",
+                      "LAR" = "STL",
+                      "LVR" = "OAK"
+    )
+  ) 
+std_pos_order <- c("QB", "RB", "WR", "TE", "OL", "IDL", "EDGE", "LB", "DB", "ST")
+draft <- draft |>
+  mutate(
+    pos_group = fct_collapse(pos,
+                             "RB" = c("RB", "FB"),
+                             "OL" = c("C", "G", "T", "OL"),
+                             "IDL" = c("DL", "DT", "NT"),
+                             "EDGE" = c("DE", "OLB"),
+                             "LB" = c("ILB", "LB"),
+                             "DB" = c("DB", "CB","S"),
+                             "ST" = c("K", "LS", "P")
+    ),
+    pos_group = fct_relevel(pos_group, std_pos_order)
+  )
+draft <- draft |>
+  mutate(
+    career_length = played_to - year, 
+    active = if_else(played_to == 2024, TRUE, FALSE)
+  ) 
+draft <- draft |>
+  mutate(
+    log_w_av = (w_av / (2.275 + 7.054 * log(2024 - year))),
+    rel_w_av = log_w_av/mean(log_w_av),
+    avg_w_av = if_else(career_length > 0, w_av / career_length, 0)
+  ) 
+
+
+### Load Datasets ----
 #load and join datasets to main "draft" data frame
 draft_prospects <- read_csv("data/nfl_draft_prospects.csv", guess_max = 13000)|>
   select(
@@ -24,7 +73,7 @@ coaches_fbr_11_20 <- readxl::read_xlsx("data/nfl_coaches_11_20.xlsx")
 
 # view(draft_contracts)
 
-## Join Datasets ----
+### Join Datasets ----
 #official join statement
 draft <- draft_fbr_11_20 |>
   inner_join(draft_prospects, join_by(pick == overall, year == draft_year)) |>
@@ -36,7 +85,7 @@ view(draft)
 skimr::skim_without_charts(draft)
 
 
-## Evaluate Missingness ----
+### Evaluate Missingness ----
 naniar::gg_miss_var(draft)
 
 
@@ -56,7 +105,7 @@ draft |>
 draft <- draft |>
   complete(fill = list(rel_w_av = 0, w_av = 0, dr_av = 0, gp = 0)) 
 
-## Clean/Add Variables  ----
+### Clean/Add Variables  ----
 
 # ignore relocation for Chargers, Raiders and Rams strings (they're the same team for our purposes)
 draft <- draft |>
@@ -110,10 +159,6 @@ draft |>
   geom_point() +
   geom_smooth(method="lm", formula= (mean ~ log(2024 - year)), se=FALSE, color=2)
 
-#seems to be linear model of expected value
-w_av_fit <- linear_reg() |>
-  fit(w_av ~ year, data = draft)
-w_av_fit
 
 #seems to be exponential model of expected value
 draft |>
@@ -221,7 +266,8 @@ draft |>
 ggsave(filename = "pos_group_value.png")
 
 # draft success vs team success chart ----
-draft |> summarize(
+draft |> 
+  summarize(
   avg_value = sum(rel_w_av, na.rm = TRUE)/n(),
   win_pct = (mean(win) + (mean(tie)/2))/ 16,
   .by = team
