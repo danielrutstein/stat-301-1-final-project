@@ -54,7 +54,7 @@ draft |>
 
 
 draft <- draft |>
-  complete(fill = list(w_av = 0, dr_av = 0, gp = 0)) 
+  complete(fill = list(rel_w_av = 0, w_av = 0, dr_av = 0, gp = 0)) 
 
 ## Clean/Add Variables  ----
 
@@ -123,12 +123,15 @@ draft |>
 # weight player value relative to linear expectation (for draft year)
 draft <- draft |>
   mutate(
-    rel_w_av = w_av / (2.275 + 7.054 * log(2024 - year)),
+    log_w_av = (w_av / (2.275 + 7.054 * log(2024 - year))),
+    rel_w_av = log_w_av/mean(log_w_av),
     avg_w_av = if_else(career_length > 0, w_av / career_length, 0)
   ) 
+
 draft |> 
-  arrange(desc(rel_w_av)) |>
-  select(player, rel_w_av)
+  summarize(
+    meanrel_w_av = mean(rel_w_av, na.rm = TRUE)
+  )
 
 draft |>
   group_by(year) |>
@@ -217,9 +220,43 @@ draft |>
   )
 ggsave(filename = "pos_group_value.png")
 
+# draft success vs team success chart ----
+draft |> summarize(
+  avg_value = sum(rel_w_av, na.rm = TRUE)/n(),
+  win_pct = (mean(win) + (mean(tie)/2))/ 16,
+  .by = team
+) |> arrange(desc(avg_value))|> ggplot(aes(x = avg_value, y = win_pct)) +
+  geom_abline(slope = -1, intercept = seq(0.4, -0.3, -0.1), alpha = .2) +
+  geom_mean_lines(aes(x0 = 1, y0 = .5)) +
+  geom_nfl_logos(aes(team_abbr = team), width = 0.065, alpha = 0.7) +
+  labs(
+    x = "average draft pick value",
+    y = "win percentage",
+    caption = "Data: Sports Reference",
+    title = "Mapping of relationship between draft success and team success"
+  ) 
+
+draft |> 
+  group_by(year, team) |>
+  summarize(
+    avg_value = sum(rel_w_av, na.rm = TRUE)/n(),
+    win_pct = (win + (tie/2))/ 16
+  ) |> arrange(desc(avg_value)) |> 
+  ggplot(aes(x = avg_value, y = win_pct)) +
+  geom_abline(slope = -1, intercept = seq(0.4, -0.3, -0.1), alpha = .2) +
+  geom_mean_lines(aes(x0 = 1, y0 = .5)) +
+  geom_nfl_logos(aes(team_abbr = team), width = 0.065, alpha = 0.7) +
+  labs(
+    x = "average draft pick value",
+    y = "win percentage",
+    caption = "Data: Sports Reference",
+    title = "Mapping of relationship between draft success and team success"
+  ) 
 
 
-
+draft |>
+  summarize(
+    class_value = 
 
 
 
@@ -271,18 +308,16 @@ draft |>
 
 # let's do the basics
 draft |>
-  ggplot(aes(x = pick, y = w_av)) +
+  ggplot(aes(x = pick, y = rel_w_av)) +
   geom_point(alpha = 0.3) +
   facet_wrap(~year)
 
 draft |>
-  ggplot(aes(x = as.factor(round), y = w_av)) +
+  ggplot(aes(x = as.factor(round), y = rel_w_av)) +
   geom_boxplot() +
-  coord_cartesian(ylim = c(0, 100)) +
-  facet_wrap(~team)
-
-
-
+  coord_cartesian(ylim = c(0, 6)) +
+  facet_wrap(~team) +
+  element_nfl_logo(team)
 
 
 
@@ -294,7 +329,9 @@ draft |>
     prop_start = started /n()
   )
 
-
+draft |>
+  filter (rel_w_av > 0.99 & rel_w_av < 1.01) |>
+  select(player)
 
 
 
