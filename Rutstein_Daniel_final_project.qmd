@@ -1,11 +1,11 @@
 ---
-title: "Progress Memo 1"
+title: "Final Project: A 7-Round Draft Analysis"
 subtitle: |
   | Final Project 
   | Data Science 1 with R (STAT 301-1)
 author: "Daniel Rutstein"
 pagetitle: "Daniel Rutstein"
-date: "November 3, 2024"
+date: today
 
 format:
   html:
@@ -21,125 +21,179 @@ execute:
 from: markdown+emoji
 reference-location: margin
 citation-location: margin
+eval: true
 echo: false
 ---
 
-
-
-::: {.callout-tip icon=false}
-
+::: {.callout-tip icon="false"}
 ## Github Repo Link
 
-
-[Daniel Rutstein FP1 Repo Link](https://github.com/stat301-1-2024-fall/final-project-1-danielrutstein.git)
-
+[Daniel Rutstein Progress Memo #2 Repo Link](https://github.com/danielrutstein/stat-301-1-final-project.git)
 :::
 
 
-## Data source
-
 ```{r}
-library(readxl)
 library(tidyverse)
-nfldraft <- read_xlsx("data/301_final_dataset.xlsx")
-knitr::kable(head(nfldraft[, 1:29]))
+library(readxl)
+library(nflplotR)
+library(knitr)
 ```
 
 
-[Spreadsheet Link](https://docs.google.com/spreadsheets/d/1ERY9mJLI0LpalHmZC6ImHCE6_MhL2_Ic/edit?usp=share_link&ouid=109507493783401190116&rtpof=true&sd=true)
-"also in data folder of GitHub Repo"
 
-This is the link to my main database, which is a compilation of 10 NFL Draft Classes^[The NFL draft is an event that occurs every year after the football season ends to decide which team college (or in rare cases, international) players ready to turn professional will play for. Each team takes approximately 8 turns to pick players, in ascending order of team wins from the previous season (worst team goes first in each round), although teams are free to trade their draft picks to other teams for veteran players and/or other draft picks. The "draft class" is the group of drafted players in a given year, usually logged with the team and order in the selection process they were drafted.] from 2011-2020, sourced from Sports Reference's football website: Pro Football Reference.^[“2011-2020 NFL Draft Listing.” Sports Reference. Accessed November 3, 2024. https://www.pro-football-reference.com/years/2020/draft.htm. ]  Pro Football Reference does not have a feature to download draft classes across years, so I copied and pasted each draft table into an excel spreadsheet (.xlsx), adding a `year` variable to distinguish which draft each observation was from and left the other observations unchanged. There are 29 variables and 2545 observations among the 10 draft classes.
+[NFL Draft Databse Link](https://docs.google.com/spreadsheets/d/1ERY9mJLI0LpalHmZC6ImHCE6_MhL2_Ic/edit?usp=share_link&ouid=109507493783401190116&rtpof=true&sd=true)
 
+[NFL Draft Prospect Profile Databse Link](https://www.kaggle.com/datasets/jacklichtenstein/espn-nfl-draft-prospect-data/data)
+
+[NFL Coaches Databse Link](https://docs.google.com/spreadsheets/d/18UZee498CfwnV6H5TyBSwKJkd4vGTYiT/edit?usp=sharing&ouid=109507493783401190116&rtpof=true&sd=true)
+
+
+
+"all databases also in data folder of GitHub Repo"
+
+::: {.callout-note}
+Reminder of original database:
+This is the link to my main database, which is a compilation of 10 NFL Draft Classes^[The NFL draft is an event that occurs every year after the football season ends to decide which team college (or in rare cases, international) players ready to turn professional will play for. Each team takes approximately 8 turns to pick players, in ascending order of team wins from the previous season (worst team goes first in each round), although teams are free to trade their draft picks to other teams for veteran players and/or other draft picks. The "draft class" is the group of drafted players in a given year, usually logged with the team and order in the selection process they were drafted.] from 2011-2020, sourced from Sports Reference's football website: Pro Football Reference.^[“2011-2020 NFL Draft Listing.” Sports Reference. Accessed November 3, 2024. https://www.pro-football-reference.com/years/2020/draft.htm. ]  Pro Football Reference does not have a feature to download draft classes across years, so I copied and pasted each draft table into an excel spreadsheet (.xlsx), adding a `year` variable to distinguish which draft each observation was from and left the other observations unchanged. There are 29 variables and 2544 observations among the 10 draft classes in this file.
 [Source: Sports Reference](https://www.pro-football-reference.com/years/2020/draft.htm)
+:::
 
 
+## Summary
+At this juncture, the bulk of my progress has been in cleaning, conditioning, and preparing my data for thorough visualizations. I did some initial exploratory visualizations, but my principal objective was to make sure my dataset was prepared for a complex, meaningful data journey. Some of my most important milestones were appending (joining) two new datasets to the original draft pick database, finding and fitting a model to estimate draft pick value, and performing univariate/bivariate analyses on some of the most key variables in the dataset. While there is much iteration to be done with my exploration process, I believe I am in a much better place now than when I submitted Progress Memo 1 to navigate my data effectively.
 
-## Why this data
 
-I am currently planning to begin my career in sport management, so I wanted to use a sports-related dataset I could potentially show to sport industry employers. I decided to use Pro Football Reference's NFL Draft Class tracker from 2011 to 2020 because of its complexity of variables, sufficient scale/sample of observations, and lack of missingness for key variables. I chose this age range because a decade of draft picks is a large enough sample size for a complex EDA, but small enough in time range ^[Player scouting methods and the way the game of football is played changes tremendously by decade. Thus, an NFL Draft from 1984 may show significantly different patterns relative to one from 2014. This EDA is designed to reveal insights about the current NFL Draft landscape, so I wanted to keep classes in close enough proximity to the current game.]. I also chose to cap observations at the 2020 NFL Draft (even though there are four more recent drafts with databases on the website) becuase NFL players are required to sign a four-year contract after being drafted. Due to this standardized obligation, I wanted to eliminate observations for players draftted after 2020, since they are yet to complete their full draft contract.  
+## Adding Complexity to Dataset
+After submitting progress memo #1, my greatest concern was not having enough "meat on the bone", per sé, to perform a complex enough EDA. Thus, I found two new datasets to join to my original draft profiles, adding 21 new variables to work with.
 
-## Data quality & complexity check
-In sum, I believe the `nfldraft` database clears both quality and complexity checks. The missingness in the dataset is backed by real-world reasoning, and even though there are two encoded variable types (because of excel formatting), there is great variety in how the variables should be treated. For example, `year` and `round` behave more like factor variables (or discrete numericals) than standard numericals, and new variables could be mutated, such as a Boolean T/F for whether the player is still active `played_to == 2024`. Complexity is satisfied by the size of the database and nuance of observations. A 2544 x 29 tibble should be sufficiently large, and there is enough diversity in the behavior of the variables and observations to perform a thought-provoking EDA.
+The first database was sourced from Kaggle,^[Lichtenstein, Jack. “ESPN NFL Draft Prospect Data.” Kaggle, May 5, 2021. https://www.kaggle.com/datasets/jacklichtenstein/espn-nfl-draft-prospect-data/data. ] containing ESPN.com draft data for each prospect. I am curious how the media performs relative to NFL professionals, so the ESPN position and overall rankings will be nteresting variables to explore. In addition, this database contains information on player height, weight, and whether the draft pick was traded, which gives further opprotunity to explore new research questions.
+The second database is a summary of NFL coaches by team from 2011-2020, sourced from Sports Reference in an excel spreadsheet I compiled just like my original dataset.^[“2020 NFL Coaches.” Pro Football Reference. Accessed November 26, 2024. https://www.pro-football-reference.com/years/2020/coaches.htm. ] This dataset not only allows for us to see which coaches are most successful at draft picks, how draft pick success relates to turnover (number of coaches per team over the decade), but also contains inofrmation on wins and losses, playoff success, and Super Bowl wins that will be tremendously useful in exploring relationships between draft success and team success.
 
 ```{r}
-skimr::skim_without_charts(nfldraft) 
-```
-Source: Sports Reference
-```{r}
-library(naniar)
-nfldraft |>
-  gg_miss_var() +
-  labs(
-    title = "Exploration of Variable Missingness",
-    caption = "Source: Sports Reference"
+draft_prospects <- read_csv("data/nfl_draft_prospects.csv", guess_max = 13000)|>
+  select(
+    player_id, player_name, overall, school_name, school_abbr, pick, link, traded, trade_note, pick, weight, height, pos_rk, ovr_rk, draft_year, grade
+  ) |> rename(
+    pick_rd = pick, college_mascot = school_name, college_abbr = school_abbr 
   )
 
+draft_fbr_11_20 <- readxl::read_xlsx("data/nfldraft_11_20.xlsx")
+coaches_fbr_11_20 <- readxl::read_xlsx("data/nfl_coaches_11_20.xlsx")
+
+#official join statement
+draft <- draft_fbr_11_20 |>
+  inner_join(draft_prospects, join_by(pick == overall, year == draft_year)) |>
+  left_join(coaches_fbr_11_20, join_by(year, team))
+
+kable(slice_head(draft, n = 5)) 
 ```
-Evaluating missingness in `nfldraft`, I believe most, if not all, NA values can be attributed to actual properties of NFL football. Based on the above chart, I assume defensive stats are coded as NAs for players that do not play a defensive position, but offensive stats are coded as 0s for players who do not play the position that earns the stat (quarterbacks for `pass_yds`, running backs for `ru_yds`, etc.). I also assume the 207 observations that have the same large grouping of missing variables are most likely the drafted players who never played in an NFL game. It would make sense they would not have any stats registered on Sports Reference if they never played a game, and is further backed by the games played (`gp`) variable having exactly 207 missing values. 
+
+
+## Finding the Base Variable
+To lay the foundation of my EDA, I need to answer a simple yet ambiguous question: for the purposes of the project, which variable best approximates player success? The two candidates are `w_av`, which is Football Reference's weighted career value for each player in the dataset across position, and `dr_av`, which uses the same formula, but omits any accumulated career value after leaving the team that drafted them. The pros of each are 
+
+`dr_av`: Theoretically, we want to know how valuable a draft pick was to the team that drafted them. Since a team does not care how a player performs for other teams after the player is no longer on their team, `dr_av` succeeds at ignoring this marginal performance.
+
+`w_av`: Just because draft value is a more direct estimator of expected value to the team that drafted them, it is not necessarily the best. There is great variance to consider regarding how a player leaves a team. In a worst case, we have a Type II error where a player gets cut from the team that drafted them, then "breaks out" on another team that takes them on. However, even in this case, it may be the coaching staff's fault for failing to recognize the talent their personnel staff provided for them, or failure to wait for the learning curve of the player with the 53-man roster constraint in the NFL. Furthermore, there are cases where the player is traded (and the team gets undetected value in the form of trade compensation), or the team is outbid on a second contract, even though they would have liked to retain the player in the absence of free agency.
+
+Thus, I believe `w_av` is a better estimator. Let's see who the Top 10 players are in `w_av` to confirm our hypothesis.
 
 ```{r}
-nfldraft |>
-  ggplot(aes(x = dr_av)) +
-  geom_density() +
-  labs(
-    title = "Player Value to Team that Drafted them Distrubution",
-    x = "DrAV",
-    caption = "Source: Sports Reference"
-  )
-
+top10_w_av <- draft |>
+  arrange(desc(w_av)) |>
+  select(player, w_av)
+  kable(slice_head(top10_w_av, n = 10), caption = "Top 10 players by w_av")
 ```
-I would expect density function to have right skew, so this checks out. The hit rate on finding a superstar player is very low, but superstars return tremendous value to the team that drafted them.
+For anyone familiar with the NFL, the problem is obvious. Let's add year to the table.
 
 ```{r}
-nfldraft |>
-  ggplot(aes(x = round, y = dr_av)) +
-  geom_boxplot(aes(group = cut_width(round, 1))) +
-  labs(
-    title = "Player Value to Team that Drafted them by Round",
-    subtitle = "DrAv: weighted average value of player to team that drafted them",
-    y = "DrAV",
-    caption = "Source: Sports Reference"
-  )
-
+top10_w_av <- draft |>
+  arrange(desc(w_av)) |>
+  select(player, year, w_av)
+  kable(slice_head(top10_w_av, n = 10), caption = "Top 10 players by w_av")
 ```
-Makes sense, should be negative correlation (lower round = higher expected value)
-```{r}
-nfldraft |>
-  filter(pos == "QB") |>
-  mutate(pass_ypg = pass_yds/gp) |>
-  ggplot(aes(x = pick, y = pass_ypg)) +
-  geom_point() +
-  geom_smooth(method = "lm", se = FALSE) +
-  labs(
-    title = "Quarterback Passing Yards per Game by Pick #",
-    subtitle = "ypg = passing yards/games played",
-    y = "ypg",
-    caption = "Source: Sports Reference"
-  )
 
+w_av is a cumulative statistic, so there is a heavy bias to players drafted on the earlier half of the 2010's decade. We could do an average `w_av` by years active to remedy this, but I would argue that would overweigh the converse, as player performance generally regresses with age. Let's compare how expected value changes by draft year.
 
-```
-Makes sense, same as graph above (Lower pick = better expected quarterback)
 ```{r}
-nfldraft |>
+draft |>
+  group_by(year) |>
   summarize(
-    n_college = n(),
-    round = as.factor(round),
-    .by = college
-  ) |> filter(n_college > 50)  |>
-  ggplot(aes(x = college, fill = round)) +
-  geom_bar() +
-  labs(
-    title = "Round Breakdown of Colleges w/ 50+ Draft Picks in 2010s Decade",
-    subtitle = "n = 9",
-    caption = "Source: Sports Reference"
-  )
+    mean = mean(w_av, na.rm = TRUE),
+    median = median(w_av, na.rm = TRUE),
+    sd = sd(w_av, na.rm = TRUE),
+    IQR = IQR(w_av, na.rm = TRUE)
+  ) |> kable(caption = "summary stats by draft class")
 ```
-Looks about right: some of the best college football programs from the 2010s have the most draft picks in the 2010s.
+![Expected value (mean w_av) by draft class](2plots/exp_w_av_1120.png){#fig-exp_w_av_1120}
 
-## Potential data issues
+From @fig-exp_w_av_1120, looks like a logarithmic regression to me. Let's normalize our w_av variable by an exponential approximation to minimize the affect of year possible as much as we can.
 
-The largest potential issue in the dataset, in my opinion, is the time inconsistency of performance. Because there are NFL players still actively playing in each draft class of the dataset, and expected player performance differs by age, statistics for younger draft classes may be tracked before their respective "primes" and past their respective "primes" for older draft classes. For example, a player that may have declined because of age in the 2011 Draft Class would produce lower average statistics than if the exact same player was in the 2020 Draft Class (hypothetically showing the same pattern if we repeated this study in 2033). So, even averaging out performance by games played, performance metrics may be skewed. This could be fixed by using only draft classes where all players are retired, but as mentioned in note 3, results would be less relevant to the current NFL Draft landscape. Grouping by Draft Class could be an important remedy to this issue.
+```{r}
+draft <- draft |>
+  mutate(
+    rel_w_av = w_av / (2.275 + 7.054 * log(2024 - year))
+  ) 
 
-Another potential issue is the high unique value count of factor variables in the dataset. There are 247 unique `college` observations and 32 unique NFL `team` observations. Plotting anything by NFL team or college team will thus be nearly impossible to read without some parsing strategy. A potential solution could be to mutate new variables that categorize these factors, such as `division` to facet NFL teams into 8 groups of 4, or `conference` to sort college by competition level (for example, the SEC (Southeastern Conference) is considered to be a higher level of competition than others, which could potentially relate to to more NFL-ready prospects). 
+top10_rel_w_av <- draft |> 
+  arrange(desc(rel_w_av)) |>
+  select(player, year, rel_w_av)
+  kable(slice_head(top10_rel_w_av, n = 10), caption = "Top 10 players by log-adjusted w_av")
+
+```
+The years appear to be more randomly distributed, so the model seems to fit expected value. We could also divide by mean, but this assumes that expected/average draft class value is the same across every year, which is not necessarily true (there is variance in the strength of each draft class). In conclusion, therefore, `rel_w_av` will be considered our main variable to estimate success of a draft pick in this exploration.
+
+## Cleaning/Adding Helpful Variables
+Reassigned `team` levels ("OAK", "STL", and "SDG") to match with the ("LVR", "LAR", and "LAC") levels to ignore team location. The Oakland Raiders, St.Louis Rams, and San Diego Chargers became the Oakland Raiders, St.Louis Rams, and San Diego Chargers in the 2010's decade, but relocation does not affect team rosters or expected team performance. Thus, location should have no effect on analyzing the `team` variable, unless we are investigating geography. 
+
+Added integer `career_length` and boolean `active` variables to easily recall how long a player played (or has played) in the NFL and whether they are still playing.
+
+Created `pos_group` variable to condense positions into the groups that the NFL talent evaluation community typically uses to bucket players. This makes digesting factor variables much easier, as this cuts our levels from 22 to 10.
+
+## Analysis of rel_w_av
+Viewing the density plot of `rel_w_av` (see @fig-dist_value) and the boxplot of `rel_w_av` by `round` (see @fig-dist_value_rnd), the data behaves as we expect. Only 50.7% of players are "starters" for at least one NFL season, and only 22.9% are "starters: for at least 4 years (the duration of an NFL contract). Thus, it makes sense that the density of `rel_w_av` skews heavily to the right, since the near median draft pick does not even start for any season in the NFL. The long tail also makes sense since star players (Russell Wilson, Aaron Donald, Patrick Mahomes), return substantially more value to their teams over their careers than the average player. Grouping `rel_w_av` by round in @fig-dist_value_rnd, the pattern also follows exactly what would be expected: each quartile and the median always decreases as round increases. The soundness of `rel_w_av` in conforming to expected patterns supports the notion that `rel_w_av` is a fairly accurate estimator of success of a draft pick.
+
+![Distribution of player value](2plots/dist_value.png){#fig-dist_value}
+
+![Distribution of player value by round](2plots/dist_value_rnd.png){#fig-dist_value_rnd}
+
+
+
+## Analysis of pos_group
+
+An important factor variable to consider in the exploration is position group (`pos_group` in tibble). Although `rel_w_av` attempts to determine how valuable a player is independent of position, each player in football performs a completely different role (unlike, say, baseball) and is evaluated on completely different criteria. 
+
+![Density of position targeted by round](2plots/pos_group_tile.png){#fig-pg-tile}
+
+@fig-pg-tile confirms that `pos_group` behaves as we would expect. Teams draft what NFL analysts consider "premium" positions (QB, WR, EDGE, OL) more frequently in the early rounds and less valuable positions (ST, RB, LB, TE) more frequently in the later rounds.
+
+![Density of player value by position group](2plots/pos_group_density.png){#fig-pg-density}
+
+From @fig-pg-density, we can clearly see the distribution of expected value by `pos_group` is not uniform. Tight ends and defensive backs have an especially high density near 0, whereas offensive lineman and quarterbacks are less dense in this region, meaning they are less likely to outright fail. 
+
+![Density of player value by round, grouped by position](2plots/pos_group_value.png){#fig-pg-value}
+
+Furthermore, @fig-pg-value demonstrates that dropoffs in value by round differ by `pos_group`. For example, there is a sharp dropoff in value after the first two rounds for quarterbacks, whereas offensive linemen and defensive backs follow a steady linear decline in value. 
+
+
+## Next Steps
+
+After conditioning my data to answer proper research questions, I plan on formatting my EDA in "7 rounds", where I will answer 7 substantial questions about patterns relating to the NFL draft and the database. These questions are subject to change, but currently, they are:
+
+1) Does recency bias (success of position groups in previous draft) affect draft positions in the next year’s draft?
+  
+2)	What patterns can we find with player age when drafted and performance? 
+
+3)	What is the relationship between draft picks per team in a draft and expected draft class value?
+
+4)	Does draft pick success correlate with head coach tenure and turnover?
+
+5)	What is the relationship between college conference/other college groupings and draft pick success rate?
+
+6)	Are “hometown” picks (when team drafts from nearby colleges) more likely than others? More successful than others?
+
+7)	Are first round draft picks less successful when they deviate from media “consensus”, more successful when they get a “steal” (positive)?
+
+
+
+
+
