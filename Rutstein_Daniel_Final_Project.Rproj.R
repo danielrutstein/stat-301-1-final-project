@@ -45,10 +45,13 @@ draft <- draft |>
     career_length = played_to - year, 
     active = if_else(played_to == 2024, TRUE, FALSE)
   ) 
+
 draft <- draft |>
   mutate(
     log_w_av = (w_av / (2.275 + 7.054 * log(2024 - year))),
     rel_w_av = log_w_av/mean(log_w_av),
+    exp_pick_av = (rel_w_av / (4.263 - 0.7171 * log(pick))),
+    rel_pick_av = exp_pick_av/mean(exp_pick_av),
     avg_w_av = if_else(career_length > 0, w_av / career_length, 0)
   ) 
 
@@ -169,13 +172,34 @@ draft |>
   mutate (year_since = 2024 - year) |>
   lm(formula = w_av ~ log(year_since))
 
-# weight player value relative to linear expectation (for draft year)
+# weight player value relative to log expectation (for draft year)
 draft <- draft |>
   mutate(
     log_w_av = (w_av / (2.275 + 7.054 * log(2024 - year))),
     rel_w_av = log_w_av/mean(log_w_av),
     avg_w_av = if_else(career_length > 0, w_av / career_length, 0)
   ) 
+
+draft |>
+  group_by(pick) |>
+  summarize(
+    avg_value = sum(rel_w_av, na.rm = TRUE)/n()
+  ) |>
+  ggplot(aes(x = pick, y = avg_value)) +
+  geom_point()
+
+#seems to be exponential model of expected value, just like the picks themselves
+draft |>
+  lm(formula = rel_w_av ~ log(pick))
+
+# weight player value relative to linear expectation (for draft year)
+draft |>
+  mutate(
+    exp_pick_av = (rel_w_av / (4.263 - 0.7171 * log(pick))),
+    rel_pick_av = exp_pick_av/mean(exp_pick_av)
+  ) |> select(player, rel_w_av, rel_pick_av) |>
+  arrange(desc(rel_pick_av))
+
 
 draft |> 
   summarize(
@@ -269,23 +293,35 @@ draft |>
   )
 ggsave(filename = "pos_group_value.png")
 
-# draft success vs team success chart ----
-draft |> 
+
+## Team Success ----
+draft |>
+  group_by(team, year) |>
   summarize(
-  avg_value = sum(rel_w_av, na.rm = TRUE)/n(),
-  win_pct = (mean(win) + (mean(tie)/2))/ 16,
-  .by = team
-) |> arrange(desc(avg_value))|> ggplot(aes(x = avg_value, y = win_pct)) +
-  geom_abline(slope = -1, intercept = seq(0.4, -0.3, -0.1), alpha = .2) +
-  geom_mean_lines(aes(x0 = 1, y0 = .5)) +
-  geom_nfl_logos(aes(team_abbr = team), width = 0.065, alpha = 0.7) +
+    avg_value = sum(rel_w_av, na.rm = TRUE),
+    games_won = mean(win)+(mean(tie)/2)
+  ) |> arrange(desc(avg_value))|> ggplot(aes(x = avg_value, y = games_won)) +
+  geom_point() +
   labs(
     x = "average draft pick value",
-    y = "win percentage",
+    y = "wins",
     caption = "Data: Sports Reference",
     title = "Mapping of relationship between draft success and team success"
   ) 
 
+draft |>
+  group_by(team, year) |>
+  summarize(
+    avg_value = sum(rel_pick_av, na.rm = TRUE),
+    games_won = mean(win)+(mean(tie)/2)
+  ) |> arrange(desc(avg_value))|> ggplot(aes(x = avg_value, y = games_won)) +
+  geom_point() +
+  labs(
+    x = "average draft pick value",
+    y = "wins",
+    caption = "Data: Sports Reference",
+    title = "Mapping of relationship between draft success and team success"
+  ) 
 
 
 draft |>
@@ -298,6 +334,39 @@ draft |>
   labs(
     x = "average draft pick value",
     y = "wins",
+    caption = "Data: Sports Reference",
+    title = "Mapping of relationship between draft success and team success"
+  ) 
+
+## Draft Success and Team Success ----
+draft |> 
+  summarize(
+    avg_value = sum(rel_w_av, na.rm = TRUE)/n(),
+    win_pct = (mean(win) + (mean(tie)/2))/ 16,
+    .by = team
+  ) |> arrange(desc(avg_value))|> ggplot(aes(x = avg_value, y = win_pct)) +
+  geom_abline(slope = -1, intercept = seq(0.4, -0.3, -0.1), alpha = .2) +
+  geom_mean_lines(aes(x0 = 1, y0 = .5)) +
+  geom_nfl_logos(aes(team_abbr = team), width = 0.065, alpha = 0.7) +
+  labs(
+    x = "average draft pick value",
+    y = "win percentage",
+    caption = "Data: Sports Reference",
+    title = "Mapping of relationship between draft success and team success"
+  ) 
+
+draft |> 
+  summarize(
+    avg_value = sum(rel_pick_av, na.rm = TRUE)/n(),
+    win_pct = (mean(win) + (mean(tie)/2))/ 16,
+    .by = team
+  ) |> arrange(desc(avg_value))|> ggplot(aes(x = avg_value, y = win_pct)) +
+  geom_abline(slope = -1, intercept = seq(0.4, -0.3, -0.1), alpha = .2) +
+  geom_mean_lines(aes(x0 = 1, y0 = .5)) +
+  geom_nfl_logos(aes(team_abbr = team), width = 0.065, alpha = 0.7) +
+  labs(
+    x = "average draft pick value",
+    y = "win percentage",
     caption = "Data: Sports Reference",
     title = "Mapping of relationship between draft success and team success"
   ) 
