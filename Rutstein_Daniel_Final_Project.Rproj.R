@@ -53,6 +53,10 @@ draft <- draft |>
   ) 
 
 
+
+
+
+
 ### Load Datasets ----
 #load and join datasets to main "draft" data frame
 draft_prospects <- read_csv("data/nfl_draft_prospects.csv", guess_max = 13000)|>
@@ -282,27 +286,21 @@ draft |>
     title = "Mapping of relationship between draft success and team success"
   ) 
 
-draft |> 
-  group_by(year, team) |>
-  summarize(
-    avg_value = sum(rel_w_av, na.rm = TRUE)/n(),
-    win_pct = (win + (tie/2))/ 16
-  ) |> arrange(desc(avg_value)) |> 
-  ggplot(aes(x = avg_value, y = win_pct)) +
-  geom_abline(slope = -1, intercept = seq(0.4, -0.3, -0.1), alpha = .2) +
-  geom_mean_lines(aes(x0 = 1, y0 = .5)) +
-  geom_nfl_logos(aes(team_abbr = team), width = 0.065, alpha = 0.7) +
-  labs(
-    x = "average draft pick value",
-    y = "win percentage",
-    caption = "Data: Sports Reference",
-    title = "Mapping of relationship between draft success and team success"
-  ) 
 
 
 draft |>
+  group_by(team, year) |>
   summarize(
-    class_value = 
+    avg_value = sum(rel_w_av, na.rm = TRUE),
+    games_won = mean(win)+(mean(tie)/2)
+  ) |> arrange(desc(avg_value))|> ggplot(aes(x = avg_value, y = games_won)) +
+  geom_point() +
+  labs(
+    x = "average draft pick value",
+    y = "wins",
+    caption = "Data: Sports Reference",
+    title = "Mapping of relationship between draft success and team success"
+  ) 
 
 
 
