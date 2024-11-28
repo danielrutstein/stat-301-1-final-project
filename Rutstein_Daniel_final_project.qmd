@@ -69,22 +69,62 @@ The first database was sourced from Kaggle,^[Lichtenstein, Jack. “ESPN NFL Dra
 The second database is a summary of NFL coaches by team from 2011-2020, sourced from Sports Reference in an excel spreadsheet I compiled just like my original dataset.^[“2020 NFL Coaches.” Pro Football Reference. Accessed November 26, 2024. https://www.pro-football-reference.com/years/2020/coaches.htm. ] This dataset not only allows for us to see which coaches are most successful at draft picks, how draft pick success relates to turnover (number of coaches per team over the decade), but also contains inofrmation on wins and losses, playoff success, and Super Bowl wins that will be tremendously useful in exploring relationships between draft success and team success.
 
 ```{r}
+library(tidyverse)
+library(nflplotR)
+library(tidymodels)
+
+# Database setup ---- 
+# run this
 draft_prospects <- read_csv("data/nfl_draft_prospects.csv", guess_max = 13000)|>
   select(
     player_id, player_name, overall, school_name, school_abbr, pick, link, traded, trade_note, pick, weight, height, pos_rk, ovr_rk, draft_year, grade
   ) |> rename(
     pick_rd = pick, college_mascot = school_name, college_abbr = school_abbr 
   )
-
 draft_fbr_11_20 <- readxl::read_xlsx("data/nfldraft_11_20.xlsx")
 coaches_fbr_11_20 <- readxl::read_xlsx("data/nfl_coaches_11_20.xlsx")
-
-#official join statement
 draft <- draft_fbr_11_20 |>
   inner_join(draft_prospects, join_by(pick == overall, year == draft_year)) |>
   left_join(coaches_fbr_11_20, join_by(year, team))
+draft <- draft |>
+  complete(fill = list(rel_w_av = 0, w_av = 0, dr_av = 0, gp = 0)) 
+draft <- draft |>
+  mutate(
+    team = fct_recode(team,
+                      "LAC" = "SDG",
+                      "LAR" = "STL",
+                      "LVR" = "OAK"
+    )
+  ) 
+std_pos_order <- c("QB", "RB", "WR", "TE", "OL", "IDL", "EDGE", "LB", "DB", "ST")
+draft <- draft |>
+  mutate(
+    pos_group = fct_collapse(pos,
+                             "RB" = c("RB", "FB"),
+                             "OL" = c("C", "G", "T", "OL"),
+                             "IDL" = c("DL", "DT", "NT"),
+                             "EDGE" = c("DE", "OLB"),
+                             "LB" = c("ILB", "LB"),
+                             "DB" = c("DB", "CB","S"),
+                             "ST" = c("K", "LS", "P")
+    ),
+    pos_group = fct_relevel(pos_group, std_pos_order)
+  )
+draft <- draft |>
+  mutate(
+    career_length = played_to - year, 
+    active = if_else(played_to == 2024, TRUE, FALSE)
+  ) 
 
-kable(slice_head(draft, n = 5)) 
+draft <- draft |>
+  mutate(
+    log_w_av = (w_av / (2.275 + 7.054 * log(2024 - year))),
+    rel_w_av = log_w_av/mean(log_w_av),
+    exp_pick_av = (rel_w_av / (4.263 - 0.7171 * log(pick))),
+    rel_pick_av = exp_pick_av/mean(exp_pick_av),
+    avg_w_av = if_else(career_length > 0, w_av / career_length, 0)
+  ) 
+
 ```
 
 
@@ -132,6 +172,7 @@ From @fig-exp_w_av_1120, looks like a logarithmic regression to me. Let's normal
 draft <- draft |>
   mutate(
     rel_w_av = w_av / (2.275 + 7.054 * log(2024 - year))
+    
   ) 
 
 top10_rel_w_av <- draft |> 
@@ -175,23 +216,46 @@ From @fig-pg-density, we can clearly see the distribution of expected value by `
 Furthermore, @fig-pg-value demonstrates that dropoffs in value by round differ by `pos_group`. For example, there is a sharp dropoff in value after the first two rounds for quarterbacks, whereas offensive linemen and defensive backs follow a steady linear decline in value. 
 
 
-## Next Steps
+## Round 1: Does being good at drafting matter?
+Yes.
+```{r}
+draft |> 
+  summarize(
+    avg_value = sum(rel_w_av, na.rm = TRUE)/n(),
+    win_pct = (mean(win) + (mean(tie)/2))/ 16,
+    .by = team
+  ) |> arrange(desc(avg_value))|> ggplot(aes(x = avg_value, y = win_pct)) +
+  geom_abline(slope = -1, intercept = seq(0.4, -0.3, -0.1), alpha = .2) +
+  geom_mean_lines(aes(x0 = 1, y0 = .5)) +
+  geom_nfl_logos(aes(team_abbr = team), width = 0.065, alpha = 0.7) +
+  labs(
+    x = "average draft pick value",
+    y = "win percentage",
+    caption = "Data: Sports Reference",
+    title = "Mapping of relationship between draft success and team success"
+  ) 
+```
 
-After conditioning my data to answer proper research questions, I plan on formatting my EDA in "7 rounds", where I will answer 7 substantial questions about patterns relating to the NFL draft and the database. These questions are subject to change, but currently, they are:
 
-1) Does recency bias (success of position groups in previous draft) affect draft positions in the next year’s draft?
-  
-2)	What patterns can we find with player age when drafted and performance? 
+```{r}
 
-3)	What is the relationship between draft picks per team in a draft and expected draft class value?
+draft |> 
+  summarize(
+    avg_value = sum(rel_pick_av, na.rm = TRUE)/n(),
+    win_pct = (mean(win) + (mean(tie)/2))/ 16,
+    .by = team
+  ) |> arrange(desc(avg_value))|> ggplot(aes(x = avg_value, y = win_pct)) +
+  geom_abline(slope = -1, intercept = seq(0.4, -0.3, -0.1), alpha = .2) +
+  geom_mean_lines(aes(x0 = 1, y0 = .5)) +
+  geom_nfl_logos(aes(team_abbr = team), width = 0.065, alpha = 0.7) +
+  labs(
+    x = "average draft pick value",
+    y = "win percentage",
+    caption = "Data: Sports Reference",
+    title = "Mapping of relationship between draft success and team success"
+  ) 
 
-4)	Does draft pick success correlate with head coach tenure and turnover?
-
-5)	What is the relationship between college conference/other college groupings and draft pick success rate?
-
-6)	Are “hometown” picks (when team drafts from nearby colleges) more likely than others? More successful than others?
-
-7)	Are first round draft picks less successful when they deviate from media “consensus”, more successful when they get a “steal” (positive)?
+```
 
 
 
