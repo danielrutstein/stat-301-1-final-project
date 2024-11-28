@@ -298,20 +298,6 @@ ggsave(filename = "pos_group_value.png")
 draft |>
   group_by(team, year) |>
   summarize(
-    avg_value = sum(rel_w_av, na.rm = TRUE),
-    games_won = mean(win)+(mean(tie)/2)
-  ) |> arrange(desc(avg_value))|> ggplot(aes(x = avg_value, y = games_won)) +
-  geom_point() +
-  labs(
-    x = "average draft pick value",
-    y = "wins",
-    caption = "Data: Sports Reference",
-    title = "Mapping of relationship between draft success and team success"
-  ) 
-
-draft |>
-  group_by(team, year) |>
-  summarize(
     avg_value = sum(rel_pick_av, na.rm = TRUE),
     games_won = mean(win)+(mean(tie)/2)
   ) |> arrange(desc(avg_value))|> ggplot(aes(x = avg_value, y = games_won)) +
@@ -324,21 +310,6 @@ draft |>
   ) 
 
 
-draft |>
-  group_by(team, year) |>
-  summarize(
-    avg_value = sum(rel_w_av, na.rm = TRUE),
-    games_won = mean(win)+(mean(tie)/2)
-  ) |> arrange(desc(avg_value))|> ggplot(aes(x = avg_value, y = games_won)) +
-  geom_point() +
-  labs(
-    x = "average draft pick value",
-    y = "wins",
-    caption = "Data: Sports Reference",
-    title = "Mapping of relationship between draft success and team success"
-  ) 
-
-## Draft Success and Team Success ----
 draft |> 
   summarize(
     avg_value = sum(rel_w_av, na.rm = TRUE)/n(),
@@ -467,7 +438,36 @@ draft |>
   coord_flip()
 
 
+draft |>
+  group_by(team, year) |>
+  summarize(
+    avg_value = sum(rel_pick_av, na.rm = TRUE),
+    games_won = mean(win)+(mean(tie)/2)
+  ) |> arrange(desc(avg_value))|> ggplot(aes(x = avg_value, y = games_won)) +
+  geom_point() +
+  labs(
+    x = "average draft pick value",
+    y = "wins",
+    caption = "Data: Sports Reference",
+    title = "Mapping of relationship between draft success and team success"
+  ) 
 
+
+draft |>
+  group_by(team, year) |>
+  summarize(
+    avg_value = sum(rel_w_av, na.rm = TRUE),
+    games_won = mean(win)+(mean(tie)/2)
+  ) |> arrange(desc(avg_value))|> ggplot(aes(x = avg_value, y = games_won)) +
+  geom_point() +
+  labs(
+    x = "average draft pick value",
+    y = "wins",
+    caption = "Data: Sports Reference",
+    title = "Mapping of relationship between draft success and team success"
+  ) 
+
+## Draft Success and Team Success ----
 
 
 
