@@ -169,11 +169,7 @@ draft |>
 From @fig-exp_w_av_1120, looks like a logarithmic regression to me. Let's normalize our w_av variable by an exponential approximation to minimize the affect of year possible as much as we can.
 
 ```{r}
-draft <- draft |>
-  mutate(
-    rel_w_av = w_av / (2.275 + 7.054 * log(2024 - year))
-    
-  ) 
+
 
 top10_rel_w_av <- draft |> 
   arrange(desc(rel_w_av)) |>
