@@ -294,7 +294,8 @@ draft |>
 ggsave(filename = "pos_group_value.png")
 
 
-## Team Success ----
+# Round 1 ----
+## Draft Success vs Team Success ----
 draft |>
   group_by(team, year) |>
   summarize(
@@ -341,6 +342,76 @@ draft |>
     caption = "Data: Sports Reference",
     title = "Mapping of relationship between draft success and team success"
   ) 
+
+## Playoffs & Super Bowls ----
+# does the rookie contract players correlate w/ super bowl wins
+class_value <- funciton (x, var) {
+  group_by(x, y) |>
+    summarize(
+      sum(y)
+    )
+}
+  
+
+
+years <- c(2011,2012,2013,2014,2015,2016,2017,2018, 2019, 2020)
+  
+draft |>
+  group_by(team) |>
+  summarize(
+    rookie_contracts = sum(rel_w_av),
+  ) 
+
+for (i in years){
+  if (i > 2013){
+    draft |>
+      filter(year <= i & year >= i - 3)
+      group_by(team) |>
+      summarize(
+        class_value = sum(rel_w_av),
+      )
+  } else {
+    draft |>
+    group_by(team) |>
+      summarize(
+        class_value = 0,
+      )
+  }
+}
+
+if_else(year > 2013,
+  draft |>
+    filter(year <= 2014)
+  group_by(team) |>
+    summarize(
+      class_value = sum(rel_w_av),
+    )
+} else {
+  draft |>
+    group_by(team) |>
+    summarize(
+      class_value = 0,
+    )
+}
+}
+
+
+
+|> pivot_wider(
+    names_from = year,
+    values_from = class_value
+  ) summarize(
+    across
+  )
+
+
+
+
+
+
+
+
+
 
 
 
