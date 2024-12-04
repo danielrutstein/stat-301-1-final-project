@@ -327,6 +327,8 @@ draft |>
     title = "Mapping of relationship between draft success and team success"
   ) 
 
+
+
 draft |> 
   summarize(
     avg_value = sum(rel_pick_av, na.rm = TRUE)/n(),
@@ -337,7 +339,7 @@ draft |>
   geom_mean_lines(aes(x0 = 1, y0 = .5)) +
   geom_nfl_logos(aes(team_abbr = team), width = 0.065, alpha = 0.7) +
   labs(
-    x = "average draft pick value",
+    x = "average draft pick value vs expectation",
     y = "win percentage",
     caption = "Data: Sports Reference",
     title = "Mapping of relationship between draft success and team success"
@@ -345,6 +347,34 @@ draft |>
 
 ## Playoffs & Super Bowls ----
 # does the rookie contract players correlate w/ super bowl wins
+mutate a first_pick variable so we can see 
+draft_fp <- draft |> 
+  group_by(year, team) |>
+  mutate(
+      first_pick = if_else(pick == min(pick), TRUE, FALSE)
+    ) 
+
+draft_fp
+
+draft |> 
+  summarize(
+    avg_value = sum(rel_pick_av, na.rm = TRUE)/n(),
+    tot_post_win = mean(post_win) * 10,
+    .by = team
+  ) |> arrange(desc(avg_value))|> ggplot(aes(x = avg_value, y = tot_post_win)) +
+  geom_abline(slope = -1, intercept = seq(0.4, -0.3, -0.1), alpha = .2) +
+  geom_mean_lines(aes(x0 = 1, y0 = .5)) +
+  geom_nfl_logos(aes(team_abbr = team), width = 0.065, alpha = 0.7) +
+  labs(
+    x = "average draft pick value vs expectation",
+    y = "post win",
+    caption = "Data: Sports Reference",
+    title = "Mapping of relationship between draft success and postseason success"
+  ) 
+
+
+
+
 class_value <- funciton (x, var) {
   group_by(x, y) |>
     summarize(
@@ -356,11 +386,29 @@ class_value <- funciton (x, var) {
 
 years <- c(2011,2012,2013,2014,2015,2016,2017,2018, 2019, 2020)
   
-draft |>
+
+rookie_contract <- function(df, x) {
+  filter(x )
   group_by(team) |>
+    summarize(
+      rookie_contracts = sum(rel_w_av),
+    ) 
+}
+
+rookie_contracts <- NULL
+draft |>
+  filter(year <= 2014 & year >= 2011) |>
   summarize(
-    rookie_contracts = sum(rel_w_av),
-  ) 
+    rc_value = sum(rel_pick_av),
+    playoff_wins = mean(post_win),
+    .by = team
+  ) |> ggplot(aes(x = rc_value, y = playoff_wins)) +
+  geom_point()
+
+
+
+
+
 
 for (i in years){
   if (i > 2013){
