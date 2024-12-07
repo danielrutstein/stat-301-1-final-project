@@ -150,7 +150,12 @@ draft |>
 draft <- draft |>
   mutate(
     career_length = played_to - year, 
-    active = if_else(played_to == 2024, TRUE, FALSE)
+    active = if_else(played_to == 2024, TRUE, FALSE),
+    dr_day = fct_collapse(as.factor(round),
+      "Day 1" = "1",
+      "Day 2" = c("2","3"),
+      "Day 3" = c("4","5", "6", "7")
+    )
   ) 
 
 draft |>
@@ -463,6 +468,7 @@ mutate(
     )
   ) 
 
+#overall summary
 draft_age |>
   summarize(
     mean = mean(rel_w_av),
@@ -472,7 +478,21 @@ draft_age |>
     sd = sd(rel_w_av),
     rel_sd = sd(rel_pick_av),
     .by = age_fct
-  ) |> arrange(desc(rel_mean))
+  ) |> arrange(age_fct)
+
+#by draft day
+draft_age |>
+  summarize(
+    mean = mean(rel_w_av),
+    rel_mean = mean(rel_pick_av),
+    median = median(rel_w_av),
+    rel_median = median(rel_pick_av),
+    sd = sd(rel_w_av),
+    rel_sd = sd(rel_pick_av),
+    .by = c(age_fct, dr_day)
+  ) |> arrange(dr_day, age_fct)
+
+
 
 draft_age |>
   ggplot(aes(x = as.factor(round), y = rel_w_av)) +
