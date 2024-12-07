@@ -51,9 +51,14 @@ draft <- draft |>
     log_w_av = (w_av / (2.275 + 7.054 * log(2024 - year))),
     rel_w_av = log_w_av/mean(log_w_av),
     exp_pick_av = (rel_w_av / (4.263 - 0.7171 * log(pick))),
-    rel_pick_av = exp_pick_av/mean(exp_pick_av),
+    rel_pick_av = exp_pick_av - mean(exp_pick_av),
     avg_w_av = if_else(career_length > 0, w_av / career_length, 0)
   ) 
+
+draft |> summarize(
+    mean = mean(rel_pick_av),
+    .by = round
+  )
 
 
 
@@ -499,7 +504,7 @@ draft_age |>
   geom_density() +
   facet_grid(dr_day~age_fct) +
   labs(
-    title = "Distribution of player value by round", 
+    title = "Distribution of player value by age and round", 
     x = "draft day",
     y = "player value"
   ) 
