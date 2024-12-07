@@ -516,7 +516,7 @@ draft |>
     x = "average age",
     y = "win percentage",
     caption = "Data: Sports Reference",
-    title = "Mapping of relationship between draft success and team success"
+    title = "Mapping of relationship between average age and team success"
   ) 
 
 # relationship between draft age and draft success
@@ -532,7 +532,7 @@ draft |>
     x = "average age",
     y = "average draft pick value over expectation",
     caption = "Data: Sports Reference",
-    title = "Mapping of relationship between draft success and team success"
+    title = "Mapping of relationship between average age and draft success"
   ) 
 
 
