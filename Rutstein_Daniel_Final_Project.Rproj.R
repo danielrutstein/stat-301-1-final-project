@@ -356,10 +356,10 @@ draft_fp <- draft |>
 
 draft_fp
 
-draft |> 
+draft_fp |> 
   summarize(
     avg_value = sum(rel_pick_av, na.rm = TRUE)/n(),
-    tot_post_win = mean(post_win) * 10,
+    tot_post_win = sum(post_win, first_pick == TRUE),
     .by = team
   ) |> arrange(desc(avg_value))|> ggplot(aes(x = avg_value, y = tot_post_win)) +
   geom_abline(slope = -1, intercept = seq(0.4, -0.3, -0.1), alpha = .2) +
@@ -452,8 +452,24 @@ if_else(year > 2013,
     across
   )
 
+# Round 2: Age Exploration ----
+draft_age <- draft |>
+mutate(
+  age_fct = fct_collapse(
+    as.factor(age),
+    "21 or younger" = c("20","21"),
+    "25 or older" = c("25", "26", "27", "28"),
+    )
+  ) |> ggplot(aes(x = as.factor(round), y = rel_pick_av)) +
+  geom_boxplot() +
+  facet_wrap(~age_fct)
+  labs(
+    title = "Distribution of player value by round", 
+    x = "round",
+    y = "player value"
+  ) 
 
-
+##fct.recode 25+
 
 
 
