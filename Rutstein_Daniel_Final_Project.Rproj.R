@@ -203,12 +203,10 @@ draft |>
   lm(formula = rel_w_av ~ log(pick))
 
 # weight player value relative to linear expectation (for draft year)
-draft |>
+draft <- draft |>
   mutate(
-    exp_pick_av = (rel_w_av / (4.263 - 0.7171 * log(pick))),
-    rel_pick_av = exp_pick_av/mean(exp_pick_av)
-  ) |> select(player, rel_w_av, rel_pick_av) |>
-  arrange(desc(rel_pick_av))
+    rel_pick_av = rel_w_av - (4.263 - 0.7171 * log(pick))
+  ) 
 
 
 draft |> 
@@ -346,7 +344,7 @@ draft |>
     .by = team
   ) |> ggplot(aes(x = avg_value, y = win_pct)) +
   geom_smooth(method = "lm", formula = y~x, alpha = 0.3, color = "grey75") +
-  geom_mean_lines(aes(x0 = 1, y0 = .5)) +
+  geom_mean_lines(aes(x0 = 0, y0 = .5)) +
   geom_nfl_logos(aes(team_abbr = team), width = 0.065, alpha = 0.7) +
   labs(
     x = "average draft pick value vs expectation",
@@ -354,7 +352,6 @@ draft |>
     caption = "Data: Sports Reference",
     title = "Mapping of relationship between draft success and team success"
   ) 
-colors()
 
 ## Playoffs & Super Bowls ----
 # does the rookie contract players correlate w/ super bowl wins
@@ -558,11 +555,26 @@ draft_age |>
   ggplot(aes(x = age_fct, y = rel_pick_av)) +
   geom_boxplot() +
   facet_wrap(~pos_group) +
-  coord_cartesian(ylim = c(0,4))
   labs(
     title = "Distribution of position group value by age", 
     x = "age group",
-    y = "player value"
+    y = "player value vs expectation"
+  )
+
+draft_age |>
+  mutate(
+    honors = if_else(
+      all_pro > 0, "All-Pro",
+      if_else(pro_bowl > 0, "Pro Bowl","none"),
+      ),
+    honors = fct_relevel(honors, "none", "Pro Bowl")
+  ) |> 
+  ggplot(aes(x = age_fct, alpha = honors)) +
+  geom_bar()  +
+  labs(
+    title = "Visualizing superstar outcomes by age", 
+    x = "age group",
+    y = "players"
   )
 
 
