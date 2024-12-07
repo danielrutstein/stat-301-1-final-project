@@ -321,8 +321,8 @@ draft |>
     avg_value = sum(rel_w_av, na.rm = TRUE)/n(),
     win_pct = (mean(win) + (mean(tie)/2))/ 16,
     .by = team
-  ) |> arrange(desc(avg_value))|> ggplot(aes(x = avg_value, y = win_pct)) +
-  geom_abline(slope = -1, intercept = seq(0.4, -0.3, -0.1), alpha = .2) +
+  ) |> ggplot(aes(x = avg_value, y = win_pct)) +
+  geom_smooth(method = "lm", formula = y~x, alpha = 0.3, color = "grey75") +
   geom_mean_lines(aes(x0 = 1, y0 = .5)) +
   geom_nfl_logos(aes(team_abbr = team), width = 0.065, alpha = 0.7) +
   labs(
@@ -339,8 +339,8 @@ draft |>
     avg_value = sum(rel_pick_av, na.rm = TRUE)/n(),
     win_pct = (mean(win) + (mean(tie)/2))/ 16,
     .by = team
-  ) |> arrange(desc(avg_value))|> ggplot(aes(x = avg_value, y = win_pct)) +
-  geom_abline(slope = -1, intercept = seq(0.4, -0.3, -0.1), alpha = .2) +
+  ) |> ggplot(aes(x = avg_value, y = win_pct)) +
+  geom_smooth(method = "lm", formula = y~x, alpha = 0.3, color = "grey75") +
   geom_mean_lines(aes(x0 = 1, y0 = .5)) +
   geom_nfl_logos(aes(team_abbr = team), width = 0.065, alpha = 0.7) +
   labs(
@@ -349,6 +349,7 @@ draft |>
     caption = "Data: Sports Reference",
     title = "Mapping of relationship between draft success and team success"
   ) 
+colors()
 
 ## Playoffs & Super Bowls ----
 # does the rookie contract players correlate w/ super bowl wins
@@ -366,8 +367,8 @@ draft_fp |>
     avg_value = sum(rel_pick_av, na.rm = TRUE)/n(),
     tot_post_win = sum(post_win, first_pick == TRUE),
     .by = team
-  ) |> arrange(desc(avg_value))|> ggplot(aes(x = avg_value, y = tot_post_win)) +
-  geom_abline(slope = -1, intercept = seq(0.4, -0.3, -0.1), alpha = .2) +
+  ) |>  ggplot(aes(x = avg_value, y = tot_post_win)) +
+  geom_smooth(method = "lm", formula = y~x, alpha = 0.3, color = "grey75") +
   geom_mean_lines(aes(x0 = 1, y0 = .5)) +
   geom_nfl_logos(aes(team_abbr = team), width = 0.065, alpha = 0.7) +
   labs(
@@ -463,8 +464,8 @@ filter(!is.na(age)) |>
 mutate(
   age_fct = fct_collapse(
     as.factor(age),
-    "21 or younger" = c("20","21"),
-    "25 or older" = c("25", "26", "27", "28"),
+    "<22" = c("20","21"),
+    ">24" = c("25", "26", "27", "28"),
     )
   ) 
 
@@ -510,6 +511,7 @@ draft |>
     win_pct = (mean(win) + (mean(tie)/2))/ 16,
     .by = team
   ) |> ggplot(aes(x = avg_age, y = win_pct)) +
+  geom_smooth(method = "lm", formula = y~x, alpha = 0.3, color = "grey75") +
   geom_mean_lines(aes(x0 = mean(avg_age), y0 = .5)) +
   geom_nfl_logos(aes(team_abbr = team), width = 0.065, alpha = 0.7) +
   labs(
@@ -526,6 +528,7 @@ draft |>
     avg_value = sum(rel_pick_av, na.rm = TRUE)/n(),
     .by = team
   ) |> ggplot(aes(x = avg_age, y = avg_value)) +
+  geom_smooth(method = "lm", formula = y~x, alpha = 0.3, color = "grey75") +
   geom_mean_lines(aes(x0 = mean(avg_age), y0 = mean(avg_value))) +
   geom_nfl_logos(aes(team_abbr = team), width = 0.065, alpha = 0.7) +
   labs(
@@ -535,7 +538,27 @@ draft |>
     title = "Mapping of relationship between average age and draft success"
   ) 
 
+# relationship between draft age and draft success by position
+draft_age |>
+  ggplot(aes(x = age_fct, y = rel_w_av)) +
+  geom_boxplot() +
+  facet_wrap(~pos_group) +
+  labs(
+    title = "Distribution of position group value by age", 
+    x = "age group",
+    y = "player value"
+  )
 
+draft_age |>
+  ggplot(aes(x = age_fct, y = rel_pick_av)) +
+  geom_boxplot() +
+  facet_wrap(~pos_group) +
+  coord_cartesian(ylim = c(0,4))
+  labs(
+    title = "Distribution of position group value by age", 
+    x = "age group",
+    y = "player value"
+  )
 
 
 
