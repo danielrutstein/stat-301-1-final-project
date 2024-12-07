@@ -480,7 +480,7 @@ draft_age |>
     .by = age_fct
   ) |> arrange(age_fct)
 
-#by draft day
+#summary by draft day
 draft_age |>
   summarize(
     mean = mean(rel_w_av),
@@ -492,17 +492,51 @@ draft_age |>
     .by = c(age_fct, dr_day)
   ) |> arrange(dr_day, age_fct)
 
-
-
+#grid density
 draft_age |>
-  ggplot(aes(x = as.factor(round), y = rel_w_av)) +
-  geom_boxplot() +
-  facet_wrap(~age_fct, drop = TRUE) +
+  ggplot(aes(x = rel_w_av)) +
+  geom_density() +
+  facet_grid(dr_day~age_fct) +
   labs(
     title = "Distribution of player value by round", 
-    x = "round",
+    x = "draft day",
     y = "player value"
   ) 
+
+# relationship between draft age and win percentage
+draft |> 
+  summarize(
+    avg_age = sum(age, na.rm = TRUE)/n(),
+    win_pct = (mean(win) + (mean(tie)/2))/ 16,
+    .by = team
+  ) |> ggplot(aes(x = avg_age, y = win_pct)) +
+  geom_mean_lines(aes(x0 = mean(avg_age), y0 = .5)) +
+  geom_nfl_logos(aes(team_abbr = team), width = 0.065, alpha = 0.7) +
+  labs(
+    x = "average age",
+    y = "win percentage",
+    caption = "Data: Sports Reference",
+    title = "Mapping of relationship between draft success and team success"
+  ) 
+
+# relationship between draft age and draft success
+draft |> 
+  summarize(
+    avg_age = sum(age, na.rm = TRUE)/n(),
+    avg_value = sum(rel_pick_av, na.rm = TRUE)/n(),
+    .by = team
+  ) |> ggplot(aes(x = avg_age, y = avg_value)) +
+  geom_mean_lines(aes(x0 = mean(avg_age), y0 = mean(avg_value))) +
+  geom_nfl_logos(aes(team_abbr = team), width = 0.065, alpha = 0.7) +
+  labs(
+    x = "average age",
+    y = "average draft pick value over expectation",
+    caption = "Data: Sports Reference",
+    title = "Mapping of relationship between draft success and team success"
+  ) 
+
+
+
 
 
 
