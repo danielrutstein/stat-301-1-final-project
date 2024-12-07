@@ -454,20 +454,37 @@ if_else(year > 2013,
 
 # Round 2: Age Exploration ----
 draft_age <- draft |>
+filter(!is.na(age)) |>
 mutate(
   age_fct = fct_collapse(
     as.factor(age),
     "21 or younger" = c("20","21"),
     "25 or older" = c("25", "26", "27", "28"),
     )
-  ) |> ggplot(aes(x = as.factor(round), y = rel_pick_av)) +
+  ) 
+
+draft_age |>
+  summarize(
+    mean = mean(rel_w_av),
+    rel_mean = mean(rel_pick_av),
+    median = median(rel_w_av),
+    rel_median = median(rel_pick_av),
+    sd = sd(rel_w_av),
+    rel_sd = sd(rel_pick_av),
+    .by = age_fct
+  ) |> arrange(desc(rel_mean))
+
+draft_age |>
+  ggplot(aes(x = as.factor(round), y = rel_w_av)) +
   geom_boxplot() +
-  facet_wrap(~age_fct)
+  facet_wrap(~age_fct, drop = TRUE) +
   labs(
     title = "Distribution of player value by round", 
     x = "round",
     y = "player value"
   ) 
+
+
 
 ##fct.recode 25+
 
