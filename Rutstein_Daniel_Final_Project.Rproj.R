@@ -578,6 +578,17 @@ draft_age |>
   )
 
 
+# Round 3: Coaches ----
+draft_coach <-
+draft |>
+  group_by(coach, team) |>
+  summarize(
+    tenure = n_distinct(year),
+    value = mean(rel_w_av),
+    exp_value = mean(rel_pick_av)
+  ) |> arrange(desc(tenure))
+
+
 
 
 ##fct.recode 25+
