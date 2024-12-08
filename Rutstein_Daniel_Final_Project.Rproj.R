@@ -651,6 +651,8 @@ draft_coach |>
 
 
 # Round 4 ----
+## Make our tibble ----
+
 #find state using college_rankings database
 college <- levels(as.factor(draft$college))
 college_st <- draft_college
@@ -707,7 +709,7 @@ college_st = str_replace(college_st, "Sioux Falls", "SD")
 
 college_geo <- tibble(college, college_st) 
 
-## Make our tibble ----
+
 draft_geo <- draft |>
   left_join(college_geo) 
 
@@ -740,10 +742,7 @@ draft_geo <- draft_geo |>
     )
   )
 
-
-
-
-
+## Begin Analysis ----
 
 college_st = str_replace_all(college_st, ".*Florida.*", "Florida")
 
