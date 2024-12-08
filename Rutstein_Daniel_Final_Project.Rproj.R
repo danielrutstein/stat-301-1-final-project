@@ -657,18 +657,50 @@ draft_geo <-
 
 state.name
 draft_college <- levels(as.factor(draft$college))
-vectorr <- vector("list", length(draft_college))
 
 #Virginia will run before West Virginia
-vectorr <- if_else(str_detect(draft_college, "West Virginia") == TRUE, "WV", draft_college)
+draft_college = str_replace_all(draft_college, str_c(".*", "West Virginia", ".*"), "West Virginia")
 
-to_state <- function(vct, st) {
-  vct <- if_else(str_detect(vct, st) == TRUE, st, vct)
+#fb reference abbreviations
+for (i in state.abb) {
+  draft_college = str_replace_all(
+    draft_college, 
+    str_c(".*", i, ".*"), 
+    i)
 }
+
+#detect state names
+for (i in state.name) {
+  draft_college = str_replace_all(
+    draft_college, 
+    str_c(".*", i, ".*"), 
+    i)
+}
+
+for(i in colleges$institution) {
+  draft_college = str_replace_all(
+    draft_college, 
+    str_c(".*", i, ".*"), 
+    "")
+}
+
+#
+
+  
+
+
+
+
+
+
+
+draft_college = str_replace_all(draft_college, ".*Florida.*", "Florida")
 
 for (i in state.name) {
-  to_state(draft_college, i)
+  
 }
+
+
 draft_college
 
 
