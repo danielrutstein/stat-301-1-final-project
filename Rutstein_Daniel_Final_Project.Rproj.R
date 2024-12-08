@@ -593,14 +593,15 @@ draft_age |>
 # Round 3: Coaches ----
 #setup
 fired_2020 <- c("Dan Quinn", "Matt Patricia", "Bill O'Brien", "Doug Marrone", "Doug Pederson", "Anthony Lynn", "Adam Gase")
+fired_team <- c("ATL", "DET", "HOU", "JAX", "PHI", "LAC", "NYJ")
 hired_2011 <- c("Jim Harbaugh", "Ron Rivera", "Leslie Frazier", "Jason Garrett", "John Fox", "Pat Shurmur")
- 
+hired_team <- c("SFO", "CAR", "MIN", "DAL", "DEN", "CLE")
+
 draft_coach <- draft |>
   mutate(
-    fired_20 = if_else(coach %in% fired_2020 & year == 2020, TRUE, FALSE),
-    hired_11 = if_else(coach %in% hired_2011 & year == 2011, TRUE, FALSE)
-  ) |>
-  group_by(coach, team) |>
+    fired_20 = if_else(coach %in% fired_2020 & team %in% fired_team, TRUE, FALSE),
+    hired_11 = if_else(coach %in% hired_2011 & team %in% hired_team, TRUE, FALSE)
+  ) |> group_by(coach, team) |>
   mutate(
     tail_coach = case_when(
       max(year) == 2020 & min(year) == 2011 ~ "Pre-2011 AND Post-2020",
@@ -612,34 +613,41 @@ draft_coach <- draft |>
     tenure = n_distinct(year),
   ) 
 
-## tenure analysis ----
+## Tenure Analysis ----
 draft_coach |>
   ggplot(aes(x = as.factor(tenure), y = rel_pick_av)) +
   geom_boxplot() +
-  facet_wrap(~tail_coach)
+  facet_wrap(~tail_coach) 
 
-#trends at the tails
+#trends excluding the new hires to reduce variance
 draft_coach |>
-  filter(!tail_coach == "Post-2020") |>
+  filter(!(tail_coach == "Post-2020")) |> 
   group_by(tenure) |>
   summarize(
+    win_pct = (mean(win) + (mean(tie)/2))/ 16,
     avg_value = mean(rel_w_av),
     rel_value = mean(rel_pick_av),
     n = n()
   )
 
+
+## getting fired analysis ----
+# no correlation between bad last draft and getting fired
 draft_coach |>
   mutate(
     fired = if_else(fired_20 == TRUE | (year == max(year) & !(year == 2020)), TRUE, FALSE)
   ) |> group_by(coach, team, year) |>
-  summarize(
-    fire_pct = sum(fired)/n()
-  ) |> arrange(desc(fire_pct))
+  ggplot(aes(x = rel_pick_av, color = fired)) +
+  geom_density()
 
+# how does first draft go vs expectation
+draft_coach |> 
+  mutate(
+    hired = if_else(hired_11 == TRUE | (year == min(year) & !(year == 2011)), TRUE, FALSE)
+  ) |> group_by(coach, team, year) |>
+  ggplot(aes(x = rel_pick_av, color = hired)) +
+  geom_density()
 
-
-
-##fct.recode 25+
 
 
 
