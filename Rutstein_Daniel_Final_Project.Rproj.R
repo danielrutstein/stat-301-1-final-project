@@ -652,91 +652,86 @@ draft_coach |>
 
 # Round 4 ----
 #find state using college_rankings database
-draft_college <- levels(as.factor(draft$college))
-draft_state <- draft_college
+college <- levels(as.factor(draft$college))
+college_st <- draft_college
 c <- read_csv("data/college_rankings.csv") 
 colleges <- c$institution
 colleges_st <- c$state_abbr
 
 #remove . from abbr
-draft_state = str_replace_all(draft_state, "[\\.]", "")
+college_st = str_replace_all(college_st, "[\\.]", "")
 #Virginia will run before West Virginia
-draft_state = str_replace_all(draft_state, str_c(".*", "West Virginia", ".*"), "WV")
+college_st = str_replace_all(college_st, str_c(".*", "West Virginia", ".*"), "WV")
 
 #fb reference abbreviations
 for (i in state.abb) {
-  draft_state = str_replace_all(
-    draft_state, 
+  college_st = str_replace_all(
+    college_st, 
     str_c(".*", i, ".*"), 
     i)
 }
 
 #detect state names
 for (i in state.name) {
-  draft_state = str_replace_all(
-    draft_state, 
+  college_st = str_replace_all(
+    college_st, 
     str_c(".*", i, ".*"), 
     i)
 }
 
 #use college database to find state abbrs
 for(i in seq_along(colleges)) {
-  draft_state = if_else(
-    str_detect(colleges[[i]], draft_state) == TRUE, 
+  college_st = if_else(
+    str_detect(colleges[[i]], college_st) == TRUE, 
     colleges_st[[i]],
-    draft_state
+    college_st
   )
 }
 
 #manually enter few that don't fit in algorithm
-draft_state = str_replace(draft_state, "Air Force", "CO")
-draft_state = str_replace(draft_state, "Ala-Birmingham|Jacksonville St|Troy", "AL")
-draft_state = str_replace(draft_state, "Ark-Pine Bluff", "AR")
-draft_state = str_replace(draft_state, "BYU", "UT")
-draft_state = str_replace(draft_state, "Cal Poly-San Luis Obispo|Fresno St|Long Beach CC", "CA")
-draft_state = str_replace(draft_state, "Chadron St", "NE")
-draft_state = str_replace(draft_state, "Fort Hays St|Pittsburg St|Washburn", "KS")
-draft_state = str_replace(draft_state, "Grambling St|La-Monroe|LSU", "LA")
-draft_state = str_replace(draft_state, "Lamar|Midwestern St|Prairie View A&M|SF Austin|SMU|TCU|Tarleton St", "TX")
-draft_state = str_replace(draft_state, "Manitoba|McGill", "Canada")
-draft_state = str_replace(draft_state, "Mars Hill", "NC")
-draft_state = str_replace(draft_state, "Middle Tenn St", "TN")
-draft_state = str_replace(draft_state, "Morgan St|Navy", "MD")
-draft_state = str_replace(draft_state, "Newberry|Presbyterian|The Citadel", "SC")
-draft_state = str_replace(draft_state, "Sioux Falls", "SD")
+college_st = str_replace(college_st, "Air Force", "CO")
+college_st = str_replace(college_st, "Ala-Birmingham|Jacksonville St|Troy", "AL")
+college_st = str_replace(college_st, "Ark-Pine Bluff", "AR")
+college_st = str_replace(college_st, "BYU", "UT")
+college_st = str_replace(college_st, "Cal Poly-San Luis Obispo|Fresno St|Long Beach CC", "CA")
+college_st = str_replace(college_st, "Chadron St", "NE")
+college_st = str_replace(college_st, "Fort Hays St|Pittsburg St|Washburn", "KS")
+college_st = str_replace(college_st, "Grambling St|La-Monroe|LSU", "LA")
+college_st = str_replace(college_st, "Lamar|Midwestern St|Prairie View A&M|SF Austin|SMU|TCU|Tarleton St", "TX")
+college_st = str_replace(college_st, "Manitoba|McGill", "Canada")
+college_st = str_replace(college_st, "Mars Hill", "NC")
+college_st = str_replace(college_st, "Middle Tenn St", "TN")
+college_st = str_replace(college_st, "Morgan St|Navy", "MD")
+college_st = str_replace(college_st, "Newberry|Presbyterian|The Citadel", "SC")
+college_st = str_replace(college_st, "Sioux Falls", "SD")
 
-tibble(draft_college, draft_state) 
+college_geo <- tibble(college, college_st) 
 
 ## Make our tibble ----
-#
-
+draft_geo <- draft |>
+  left_join(college_geo)
   
+draft_geo |>
+  select(college, college_st)
 
 
 
 
 
 
-
-draft_state = str_replace_all(draft_state, ".*Florida.*", "Florida")
+college_st = str_replace_all(college_st, ".*Florida.*", "Florida")
 
 for (i in state.name) {
   
 }
 
 
-draft_state
+college_st
 
 
 
 }
-draft |>
-  mutate(
-    college_st = college,
-    fct_collapse(
-      
-    )
-  )
+
   
 
 
