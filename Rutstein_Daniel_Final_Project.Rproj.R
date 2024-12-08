@@ -591,36 +591,52 @@ draft_age |>
 
 
 # Round 3: Coaches ----
+#setup
 fired_2020 <- c("Dan Quinn", "Matt Patricia", "Bill O'Brien", "Doug Marrone", "Doug Pederson", "Anthony Lynn", "Adam Gase")
-  
-draft_coach <- 
-draft |>
-group_by(coach, team) |>
+hired_2011 <- c("Jim Harbaugh", "Ron Rivera", "Leslie Frazier", "Jason Garrett", "John Fox", "Pat Shurmur")
+ 
+draft_coach <- draft |>
   mutate(
-    start_end = if_else(year == 2011, "start", if_else(year == 2020, "end", "")),
-    tenure = n_distinct(year),
-    tenure = if_else(start_end == "start", tenure = (tenure - 1), tenure)
-  )
-
-draft |>
-  str_detect(coach, fired_2020)
-  
-## tenure ----
-draft |>
+    fired_20 = if_else(coach %in% fired_2020 & year == 2020, TRUE, FALSE),
+    hired_11 = if_else(coach %in% hired_2011 & year == 2011, TRUE, FALSE)
+  ) |>
   group_by(coach, team) |>
-  summarize(
-    end = if_else(max(year) == 2020, TRUE, FALSE),
+  mutate(
+    tail_coach = case_when(
+      max(year) == 2020 & min(year) == 2011 ~ "Pre-2011 AND Post-2020",
+      max(year) == 2020 & fired_20 == FALSE ~ "Post-2020",
+      min(year) == 2011 & hired_11 == FALSE ~ "Pre-2011",
+      .default = "Full Term"
+      ),
     start = if_else(min(year) == 2011, TRUE, FALSE),
     tenure = n_distinct(year),
-    tenure = case_when(
-      (start == TRUE && end == FALSE) ~ tenure - 1,
-      (start == FALSE && end == TRUE) ~ tenure + 1,
-      .default = tenure
-    )
-  ) |> arrange(desc(tenure))
+  ) 
 
-value = mean(rel_w_av),
-exp_value = mean(rel_pick_av)
+## tenure analysis ----
+draft_coach |>
+  ggplot(aes(x = as.factor(tenure), y = rel_pick_av)) +
+  geom_boxplot() +
+  facet_wrap(~tail_coach)
+
+#trends at the tails
+draft_coach |>
+  filter(!tail_coach == "Post-2020") |>
+  group_by(tenure) |>
+  summarize(
+    avg_value = mean(rel_w_av),
+    rel_value = mean(rel_pick_av),
+    n = n()
+  )
+
+draft_coach |>
+  mutate(
+    fired = if_else(fired_20 == TRUE | (year == max(year) & !(year == 2020)), TRUE, FALSE)
+  ) |> group_by(coach, team, year) |>
+  summarize(
+    fire_pct = sum(fired)/n()
+  ) |> arrange(desc(fire_pct))
+
+
 
 
 ##fct.recode 25+
