@@ -709,10 +709,36 @@ college_geo <- tibble(college, college_st)
 
 ## Make our tibble ----
 draft_geo <- draft |>
-  left_join(college_geo)
-  
-draft_geo |>
-  select(college, college_st)
+  left_join(college_geo) 
+
+draft_geo <- draft_geo |>
+  mutate(team_state = fct_collapse(team,
+      "CA" = c("SFO", "LAR", "LAC"),
+      "FL" = c("MIA", "TAM", "JAX"),
+      "PA" = c("PHI", "PIT"),
+      "NJ" = c("NYG", "NYJ"),
+      "OH" = c("CLE", "CIN"),
+      "TX" = c("HOU", "DAL"),
+      "MD" = c("BAL", "WAS"),
+      "GA" = "ATL",
+      "NC" = "CAR",
+      "MA" = "NWE",
+      "NY" = "BUF",
+      "LA" = "NOR",
+      "TN" = "TEN",
+      "NY" = "BUF",
+      "MI" = "DET",
+      "IN" = "IND",
+      "IL" = "CHI",
+      "WI" = "GNB",
+      "MN" = "MIN",
+      "MO" = "KAN",
+      "CO" = "DEN",
+      "AZ" = "ARI",
+      "NV" = "LVR",
+      "WA" = "SEA"
+    )
+  )
 
 
 
