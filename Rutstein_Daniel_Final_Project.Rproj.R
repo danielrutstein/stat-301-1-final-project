@@ -651,15 +651,15 @@ draft_coach |>
 
 
 # Round 4 ----
-
-colleges <- read_csv("data/college_rankings.csv")
-draft_geo <-
-
-state.name
 draft_college <- levels(as.factor(draft$college))
+c <- read_csv("data/college_rankings.csv") 
+colleges <- c$institution
+colleges_st <- c$state_abbr
 
+#remove . from abbr
+draft_college = str_replace_all(draft_college, "[\\.]", "")
 #Virginia will run before West Virginia
-draft_college = str_replace_all(draft_college, str_c(".*", "West Virginia", ".*"), "West Virginia")
+draft_college = str_replace_all(draft_college, str_c(".*", "West Virginia", ".*"), "WV")
 
 #fb reference abbreviations
 for (i in state.abb) {
@@ -677,13 +677,22 @@ for (i in state.name) {
     i)
 }
 
-for(i in colleges$institution) {
-  draft_college = str_replace_all(
-    draft_college, 
-    str_c(".*", i, ".*"), 
-    "")
+#use college database to find state abbrs
+for(i in seq_along(colleges)) {
+  draft_college = if_else(
+    str_detect(colleges[[i]], draft_college) == TRUE, 
+    colleges_st[[i]],
+    draft_college
+  )
 }
 
+#manually enter few that don't fit in algorithm
+draft_college = str_replace(
+  "CO" = "Air Force"
+)
+
+
+## Make our tibble ----
 #
 
   
