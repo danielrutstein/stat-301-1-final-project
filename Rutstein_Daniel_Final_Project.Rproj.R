@@ -656,13 +656,23 @@ colleges <- read_csv("data/college_rankings.csv")
 draft_geo <-
 
 state.name
-
 draft_college <- levels(as.factor(draft$college))
 vectorr <- vector("list", length(draft_college))
-for (i in state.name) {
-  vectorr <- if_else(str_detect(draft_college, i) == TRUE, i, "not i")
+
+#Virginia will run before West Virginia
+vectorr <- if_else(str_detect(draft_college, "West Virginia") == TRUE, "WV", draft_college)
+
+to_state <- function(vct, st) {
+  vct <- if_else(str_detect(vct, st) == TRUE, st, vct)
 }
-vectorr
+
+for (i in state.name) {
+  to_state(draft_college, i)
+}
+draft_college
+
+
+
 }
 draft |>
   mutate(
