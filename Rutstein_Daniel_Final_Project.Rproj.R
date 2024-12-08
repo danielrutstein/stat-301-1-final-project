@@ -631,6 +631,7 @@ draft_coach |>
   )
 
 
+
 ## getting fired analysis ----
 # no correlation between bad last draft and getting fired
 draft_coach |>
@@ -649,11 +650,27 @@ draft_coach |>
   geom_density()
 
 
+# Round 4 ----
 
+colleges <- read_csv("data/college_rankings.csv")
+draft_geo <-
 
+state.name
 
-
-
+draft_college <- levels(as.factor(draft$college))
+for (i in seq_along(draft_college)){
+  for(i in state.name){
+    if(else)
+  }
+}
+draft |>
+  mutate(
+    college_st = college,
+    fct_collapse(
+      
+    )
+  )
+  
 
 
 
