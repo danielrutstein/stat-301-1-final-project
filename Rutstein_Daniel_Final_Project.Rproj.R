@@ -651,58 +651,61 @@ draft_coach |>
 
 
 # Round 4 ----
+#find state using college_rankings database
 draft_college <- levels(as.factor(draft$college))
+draft_state <- draft_college
 c <- read_csv("data/college_rankings.csv") 
 colleges <- c$institution
 colleges_st <- c$state_abbr
 
 #remove . from abbr
-draft_college = str_replace_all(draft_college, "[\\.]", "")
+draft_state = str_replace_all(draft_state, "[\\.]", "")
 #Virginia will run before West Virginia
-draft_college = str_replace_all(draft_college, str_c(".*", "West Virginia", ".*"), "WV")
+draft_state = str_replace_all(draft_state, str_c(".*", "West Virginia", ".*"), "WV")
 
 #fb reference abbreviations
 for (i in state.abb) {
-  draft_college = str_replace_all(
-    draft_college, 
+  draft_state = str_replace_all(
+    draft_state, 
     str_c(".*", i, ".*"), 
     i)
 }
 
 #detect state names
 for (i in state.name) {
-  draft_college = str_replace_all(
-    draft_college, 
+  draft_state = str_replace_all(
+    draft_state, 
     str_c(".*", i, ".*"), 
     i)
 }
 
 #use college database to find state abbrs
 for(i in seq_along(colleges)) {
-  draft_college = if_else(
-    str_detect(colleges[[i]], draft_college) == TRUE, 
+  draft_state = if_else(
+    str_detect(colleges[[i]], draft_state) == TRUE, 
     colleges_st[[i]],
-    draft_college
+    draft_state
   )
 }
 
 #manually enter few that don't fit in algorithm
-draft_college = str_replace(draft_college, "Air Force", "CO")
-draft_college = str_replace(draft_college, "Ala-Birmingham|Jacksonville St|Troy", "AL")
-draft_college = str_replace(draft_college, "Ark-Pine Bluff", "AR")
-draft_college = str_replace(draft_college, "BYU", "UT")
-draft_college = str_replace(draft_college, "Cal Poly-San Luis Obispo|Fresno St|Long Beach CC", "CA")
-draft_college = str_replace(draft_college, "Chadron St", "NE")
-draft_college = str_replace(draft_college, "Fort Hays St|Pittsburg St|Washburn", "KS")
-draft_college = str_replace(draft_college, "Grambling St|La-Monroe|LSU", "LA")
-draft_college = str_replace(draft_college, "Lamar|Midwestern St|Prairie View A&M|SF Austin|SMU|TCU|Tarleton St", "TX")
-draft_college = str_replace(draft_college, "Manitoba|McGill", "Canada")
-draft_college = str_replace(draft_college, "Mars Hill", "NC")
-draft_college = str_replace(draft_college, "Middle Tenn St", "TN")
-draft_college = str_replace(draft_college, "Morgan St|Navy", "MD")
-draft_college = str_replace(draft_college, "Newberry|Presbyterian|The Citadel", "SC")
-draft_college = str_replace(draft_college, "Sioux Falls", "SD")
+draft_state = str_replace(draft_state, "Air Force", "CO")
+draft_state = str_replace(draft_state, "Ala-Birmingham|Jacksonville St|Troy", "AL")
+draft_state = str_replace(draft_state, "Ark-Pine Bluff", "AR")
+draft_state = str_replace(draft_state, "BYU", "UT")
+draft_state = str_replace(draft_state, "Cal Poly-San Luis Obispo|Fresno St|Long Beach CC", "CA")
+draft_state = str_replace(draft_state, "Chadron St", "NE")
+draft_state = str_replace(draft_state, "Fort Hays St|Pittsburg St|Washburn", "KS")
+draft_state = str_replace(draft_state, "Grambling St|La-Monroe|LSU", "LA")
+draft_state = str_replace(draft_state, "Lamar|Midwestern St|Prairie View A&M|SF Austin|SMU|TCU|Tarleton St", "TX")
+draft_state = str_replace(draft_state, "Manitoba|McGill", "Canada")
+draft_state = str_replace(draft_state, "Mars Hill", "NC")
+draft_state = str_replace(draft_state, "Middle Tenn St", "TN")
+draft_state = str_replace(draft_state, "Morgan St|Navy", "MD")
+draft_state = str_replace(draft_state, "Newberry|Presbyterian|The Citadel", "SC")
+draft_state = str_replace(draft_state, "Sioux Falls", "SD")
 
+tibble(draft_college, draft_state) 
 
 ## Make our tibble ----
 #
@@ -715,14 +718,14 @@ draft_college = str_replace(draft_college, "Sioux Falls", "SD")
 
 
 
-draft_college = str_replace_all(draft_college, ".*Florida.*", "Florida")
+draft_state = str_replace_all(draft_state, ".*Florida.*", "Florida")
 
 for (i in state.name) {
   
 }
 
 
-draft_college
+draft_state
 
 
 
