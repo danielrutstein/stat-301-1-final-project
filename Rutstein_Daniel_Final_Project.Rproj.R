@@ -658,10 +658,11 @@ draft_geo <-
 state.name
 
 draft_college <- levels(as.factor(draft$college))
-for (i in seq_along(draft_college)){
-  for(i in state.name){
-    if(else)
-  }
+vectorr <- vector("list", length(draft_college))
+for (i in state.name) {
+  vectorr <- if_else(str_detect(draft_college, i) == TRUE, i, "not i")
+}
+vectorr
 }
 draft |>
   mutate(
