@@ -561,6 +561,18 @@ draft_age |>
     y = "player value vs expectation"
   )
 
+## Testing "Pro-Ready" Hypothesis ----
+# starter rate
+draft_age |>
+  summarize(
+    mean_start = mean(start_yrs),
+    median_start = median(start_yrs),
+    mean_gp = mean(gp),
+    median_gp = median(gp),
+    .by = age_fct
+  ) |> arrange(age_fct)
+
+# boom rate
 draft_age |>
   mutate(
     honors = if_else(
@@ -579,16 +591,36 @@ draft_age |>
 
 
 # Round 3: Coaches ----
-draft_coach <-
+fired_2020 <- c("Dan Quinn", "Matt Patricia", "Bill O'Brien", "Doug Marrone", "Doug Pederson", "Anthony Lynn", "Adam Gase")
+  
+draft_coach <- 
+draft |>
+group_by(coach, team) |>
+  mutate(
+    start_end = if_else(year == 2011, "start", if_else(year == 2020, "end", "")),
+    tenure = n_distinct(year),
+    tenure = if_else(start_end == "start", tenure = (tenure - 1), tenure)
+  )
+
+draft |>
+  str_detect(coach, fired_2020)
+  
+## tenure ----
 draft |>
   group_by(coach, team) |>
   summarize(
+    end = if_else(max(year) == 2020, TRUE, FALSE),
+    start = if_else(min(year) == 2011, TRUE, FALSE),
     tenure = n_distinct(year),
-    value = mean(rel_w_av),
-    exp_value = mean(rel_pick_av)
+    tenure = case_when(
+      (start == TRUE && end == FALSE) ~ tenure - 1,
+      (start == FALSE && end == TRUE) ~ tenure + 1,
+      .default = tenure
+    )
   ) |> arrange(desc(tenure))
 
-
+value = mean(rel_w_av),
+exp_value = mean(rel_pick_av)
 
 
 ##fct.recode 25+
