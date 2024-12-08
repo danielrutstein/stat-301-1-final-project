@@ -664,6 +664,8 @@ colleges_st <- c$state_abbr
 college_st = str_replace_all(college_st, "[\\.]", "")
 #Virginia will run before West Virginia
 college_st = str_replace_all(college_st, str_c(".*", "West Virginia", ".*"), "WV")
+#Notre Dame will match to Notre Dame Namur (CA)
+college_st = str_replace_all(college_st, str_c(".*", "Notre Dame", ".*"), "IN")
 
 #fb reference abbreviations
 for (i in state.abb) {
@@ -674,11 +676,11 @@ for (i in state.abb) {
 }
 
 #detect state names
-for (i in state.name) {
+for (i in seq_along(state.name)) {
   college_st = str_replace_all(
     college_st, 
-    str_c(".*", i, ".*"), 
-    i)
+    str_c(".*", state.name[[i]], ".*"), 
+    state.abb[[i]])
 }
 
 #use college database to find state abbrs
@@ -714,7 +716,7 @@ draft_geo <- draft |>
   left_join(college_geo) 
 
 draft_geo <- draft_geo |>
-  mutate(team_state = fct_collapse(team,
+  mutate(team_st = fct_collapse(team,
       "CA" = c("SFO", "LAR", "LAC"),
       "FL" = c("MIA", "TAM", "JAX"),
       "PA" = c("PHI", "PIT"),
@@ -743,22 +745,15 @@ draft_geo <- draft_geo |>
   )
 
 ## Begin Analysis ----
-
-college_st = str_replace_all(college_st, ".*Florida.*", "Florida")
-
-for (i in state.name) {
-  
-}
-
-
-college_st
-
-
-
-}
-
-  
-
+view(draft_geo) |>
+  mutate(
+    state_match = if_else(team_st == college_st, TRUE, FALSE)
+  ) |> group_by(state_match) |>
+  summarize(
+    n = n(),
+    exp_value = mean(rel_w_av),
+    rel_value = mean(rel_pick_av)
+  )
 
 
 # scratch work ----
@@ -895,6 +890,22 @@ draft |>
 
 
 
+
+
+
+
+college_st = str_replace_all(college_st, ".*Florida.*", "Florida")
+
+for (i in state.name) {
+  
+}
+
+
+college_st
+
+
+
+}
 
 
 
