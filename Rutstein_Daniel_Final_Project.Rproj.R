@@ -687,9 +687,21 @@ for(i in seq_along(colleges)) {
 }
 
 #manually enter few that don't fit in algorithm
-draft_college = str_replace(
-  "CO" = "Air Force"
-)
+draft_college = str_replace(draft_college, "Air Force", "CO")
+draft_college = str_replace(draft_college, "Ala-Birmingham|Jacksonville St|Troy", "AL")
+draft_college = str_replace(draft_college, "Ark-Pine Bluff", "AR")
+draft_college = str_replace(draft_college, "BYU", "UT")
+draft_college = str_replace(draft_college, "Cal Poly-San Luis Obispo|Fresno St|Long Beach CC", "CA")
+draft_college = str_replace(draft_college, "Chadron St", "NE")
+draft_college = str_replace(draft_college, "Fort Hays St|Pittsburg St|Washburn", "KS")
+draft_college = str_replace(draft_college, "Grambling St|La-Monroe|LSU", "LA")
+draft_college = str_replace(draft_college, "Lamar|Midwestern St|Prairie View A&M|SF Austin|SMU|TCU|Tarleton St", "TX")
+draft_college = str_replace(draft_college, "Manitoba|McGill", "Canada")
+draft_college = str_replace(draft_college, "Mars Hill", "NC")
+draft_college = str_replace(draft_college, "Middle Tenn St", "TN")
+draft_college = str_replace(draft_college, "Morgan St|Navy", "MD")
+draft_college = str_replace(draft_college, "Newberry|Presbyterian|The Citadel", "SC")
+draft_college = str_replace(draft_college, "Sioux Falls", "SD")
 
 
 ## Make our tibble ----
