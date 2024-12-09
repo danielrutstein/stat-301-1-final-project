@@ -1125,8 +1125,11 @@ draft |>
   facet_wrap(~pos_group)
 
 
-
-
+## Round 7: The "Experts" ----
+draft_media <- draft |>
+  mutate(
+    diff_rk = (pick - ovr_rk) * (4.263 - 0.7171 * log(pick))
+  ) |> arrange(desc(diff_rk))
 
 
 
