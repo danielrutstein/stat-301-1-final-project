@@ -986,6 +986,29 @@ draft_cfb |>
   geom_mean_lines(aes(x0 = median(rel_pick_av))) +
   facet_wrap(~pos_group)
 
+## National Champs Analysis ----
+champs <- c("Auburn", "Alabama", "Alabama", "Florida St.", "Ohio St.", "Alabama", "Clemson", "Alabama", "Clemson", "LSU")
+yrs <- unique(draft_cfb$year)
+draft_cfb |>
+  mutate(
+    for (i in seq_along(champs)) {
+      cfb_champ = if_else(
+        college == champs[[i]] & year == yrs[[i]], 
+        TRUE, FALSE
+      )
+    }
+  ) |> select(cfb_champ)
+
+for(i in seq_along(colleges)) {
+  college_st = if_else(
+    str_detect(colleges[[i]], college_st) == TRUE, 
+    colleges_st[[i]],
+    college_st
+  )
+}
+
+
+
 # scratch work ----
 ## region ----
 draft_geo_r |>
