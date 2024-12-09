@@ -854,6 +854,7 @@ draft_geo <- draft |>
   left_join(college_geo) 
 
 draft_geo <- draft_geo |>
+  filter(college_region %in% state.division) |>
   mutate(team_st = fct_collapse(team,
       "CA" = c("SFO", "LAR", "LAC"),
       "FL" = c("MIA", "TAM", "JAX"),
@@ -894,6 +895,13 @@ draft_geo |>
     rel_value = mean(rel_pick_av)
   )
 
+draft_geo |>
+  mutate(
+    state_match = if_else(team_st == college_st, TRUE, FALSE)
+  ) |> ggplot(aes(x = rel_pick_av, color = state_match)) +
+  geom_density()
+  
+
 #by region ----
 #lets expand it to region since borders can differ (Providence and Boston vs Sacramento and San Diego)
 state.division
@@ -915,10 +923,39 @@ draft_geo_r <- draft_geo |>
 
 #region and performance
 draft_geo_r <- draft_geo_r |>
-  filter(team_region %in% state.division & college_region %in% state.division) |>
   mutate(
     region_match = if_else(team_region == college_region, TRUE, FALSE)
   ) 
+
+draft_geo_r |>
+  ggplot(aes(x = rel_pick_av, color = region_match)) +
+  geom_density() +
+  facet_wrap(~team_region)
+
+
+
+# scratch work ----
+## region ----
+draft_geo_r |>
+  summarize(
+    match_pct = sum(region_match)/n(),
+    match_value = mean(rel_pick_av, region_match == TRUE),
+    .by = team
+  ) |> ggplot(aes(x = match_pct, y = rel_value)) +
+  geom_smooth(method = "lm", formula = y~x, alpha = 0.3, color = "grey75") +
+  geom_mean_lines(aes(x0 = 1, y0 = .5)) +
+  geom_nfl_logos(aes(team_abbr = team), width = 0.065, alpha = 0.7) +
+  labs(
+    x = "average draft pick value",
+    y = "win percentage",
+    caption = "Data: Sports Reference",
+    title = "Mapping of relationship between draft success and team success"
+  ) 
+
+
+count(team_region, college_region) |>
+  ggplot(aes(x = team_region, y = college_region)) +
+  geom_tile(aes(fill = n))
 
 draft_geo_r |> group_by(region_match) |>
   summarize(
@@ -942,10 +979,7 @@ draft_geo_r |>
   ) |> arrange(desc(match_pct))
 
 
-
-
-# scratch work ----
-
+## other ----
 draft |>
   ggplot(aes(x = dr_av, y = w_av)) +
   geom_point(alpha = 0.3)
