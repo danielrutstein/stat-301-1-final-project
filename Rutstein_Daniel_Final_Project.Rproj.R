@@ -1056,6 +1056,7 @@ draft_cfb |>
   geom_boxplot() +
   scale_y_reverse()
 
+#what about relative value?
 draft_cfb |>
   summarize(
     draft_picks = n(),
@@ -1065,6 +1066,19 @@ draft_cfb |>
   ) |> ggplot(aes(x = size, y = rel_value)) +
   geom_boxplot() 
 
+# looks like draft pick range the driver of changes, so let's compare by round 
+draft_cfb |>
+  summarize(
+    draft_picks = n(),
+    size = if_else(n() > 30, "big", if_else(n() > 5, "medium", "small")),
+    rel_value = rel_pick_av,,
+    round = round,
+    .by = college
+  ) |> ggplot(aes(x = rel_value, color = size, fill = size)) +
+  geom_density(alpha = 0.3) + 
+  facet_wrap(~round)
+
+#and let's see position
 draft_cfb |>
   summarize(
     draft_picks = n(),
@@ -1072,8 +1086,8 @@ draft_cfb |>
     rel_value = rel_pick_av,
     pos_group = pos_group,
     .by = college
-  ) |> ggplot(aes(x = rel_value, color = size)) +
-  geom_density() + 
+  ) |> ggplot(aes(x = rel_value, color = size, fill = size)) +
+  geom_density(alpha = 0.3) + 
   facet_wrap(~pos_group)
 
 # Round 6: Measurables ----
