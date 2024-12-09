@@ -902,7 +902,7 @@ draft_geo |>
   geom_density()
   
 
-#by region ----
+## by region ----
 #lets expand it to region since borders can differ (Providence and Boston vs Sacramento and San Diego)
 state.division
 #function for regions
@@ -921,18 +921,39 @@ region <- tibble(player_id,college_region,team_region)
 draft_geo_r <- draft_geo |>
   left_join(region)
 
-#region and performance
+#let's analyze
+#do teams target "hometown" players more frequently at different times of the draft?"
+draft_geo_r |>
+  ggplot(aes(x = round, fill = region_match)) +
+  geom_bar()
+
 draft_geo_r <- draft_geo_r |>
   mutate(
     region_match = if_else(team_region == college_region, TRUE, FALSE)
   ) 
 
+#how do hometown picks perform?
 draft_geo_r |>
-  ggplot(aes(x = rel_pick_av, color = region_match)) +
-  geom_density() +
+  ggplot(aes(x = region_match, y = rel_w_av)) +
+  geom_boxplot() +
   facet_wrap(~team_region)
 
+# Looks like they don't become superstars. Let's check that.
+draft_geo_r |>
+  mutate(
+    honors = if_else(
+      all_pro > 0, "All-Pro",
+      if_else(pro_bowl > 0, "Pro Bowl","none"),
+    ),
+    honors = fct_relevel(honors, "none", "Pro Bowl")
+  ) |> group_by(honors) |>
+  summarize(
+    n = n(),
+    match_pct = sum(region_match)/n()
+  )
 
+
+#Round 5: College Conference/Performance ----
 
 # scratch work ----
 ## region ----
