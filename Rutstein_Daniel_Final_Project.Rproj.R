@@ -988,12 +988,77 @@ draft_cfb |>
 
 ## National Champs Analysis ----
 champs <- c("Auburn 2011", "Alabama 2012", "Alabama 2013", "Florida St. 2014", "Ohio St. 2015", "Alabama 2016", "Clemson 2017", "Alabama 2018", "Clemson 2019", "LSU 2020")
+draft_cfb <- draft_cfb |>
+  mutate(
+      cfb_champ = if_else(str_c(college, " ", year) %in% champs , TRUE, FALSE)
+  ) 
+
+draft_cfb |> 
+  summarize(
+    n = n(),
+    exp_value = mean(rel_w_av),
+    rel_value = mean(rel_pick_av),
+    .by = cfb_champ
+  )
+
+draft_cfb |>
+  ggplot(aes(x = rel_w_av, color = cfb_champ)) +
+  geom_density()
 
 draft_cfb |>
   mutate(
-      cfb_champ = if_else(str_c(college, " ", year) %in% champs , TRUE, FALSE)
-  ) |> select(player, cfb_champ)
+    cfb_champ = if_else(str_c(college, " ", year) %in% champs , TRUE, FALSE)
+  ) |> ggplot(aes(x = cfb_champ, y = pick)) +
+  geom_boxplot()
 
+## let's see how this changes with "big", or "feeder", schools
+draft_cfb |>
+  summarize(draft_picks = n(), .by = college) |>
+  arrange(desc(draft_picks)) |>
+  slice_head(n = 20)
+
+# take feeder schools as top 10 schools by draft picks in decade
+feeders <- c("Alabama", "LSU", "Ohio St.", "Florida", "Clemson", "Georgia", "Oklahoma", "Miami (FL)", "Florida St.", "Notre Dame")
+draft_cfb <- draft_cfb |>
+  mutate(
+    feeder = if_else(college %in% feeders, TRUE, FALSE)
+  )
+
+draft_cfb |>
+  summarize(
+    n = n(),
+    exp_value = mean(rel_w_av),
+    rel_value = mean(rel_pick_av),
+    .by = feeder
+  ) 
+
+draft_cfb |>
+  group_by(cfb_champ, feeder) |>
+  summarize(
+    n = n(),
+    exp_value = mean(rel_w_av),
+    rel_value = mean(rel_pick_av),
+  ) 
+
+draft_cfb |>
+  filter(feeder == TRUE) |>
+  ggplot(aes(x = rel_pick_av)) +
+  geom_density() +
+  facet_wrap(~college)
+
+# Round 6: Measurables ----
+draft |>
+  mutate(
+    bmi = weight * 730 / (height^2)
+  ) |>
+  ggplot(aes(x = bmi, y = rel_pick_av)) +
+  geom_point(alpha = 0.1) +
+  facet_wrap(~pos_group)
+
+draft |>
+  ggplot(aes(x = height, y = rel_pick_av)) +
+  geom_point(alpha = 0.3) +
+  facet_wrap(~pos_group)
 
 
 
