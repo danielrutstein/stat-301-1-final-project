@@ -1013,11 +1013,18 @@ draft_cfb |>
 
 ## let's see how this changes with "big", or "feeder", schools
 draft_cfb |>
-  summarize(draft_picks = n(), .by = college) |>
+  summarize() |>
   arrange(desc(draft_picks)) |>
   slice_head(n = 20)
 
+
 # take feeder schools as top 10 schools by draft picks in decade
+feeders <- c("Alabama", "LSU", "Ohio St.", "Florida", "Clemson", "Georgia", "Oklahoma", "Miami (FL)", "Florida St.", "Notre Dame")
+draft_cfb <- draft_cfb |>
+  mutate(
+    feeder = if_else(college %in% feeders, TRUE, FALSE)
+  )
+
 feeders <- c("Alabama", "LSU", "Ohio St.", "Florida", "Clemson", "Georgia", "Oklahoma", "Miami (FL)", "Florida St.", "Notre Dame")
 draft_cfb <- draft_cfb |>
   mutate(
@@ -1033,18 +1040,41 @@ draft_cfb |>
   ) 
 
 draft_cfb |>
-  group_by(cfb_champ, feeder) |>
-  summarize(
-    n = n(),
-    exp_value = mean(rel_w_av),
-    rel_value = mean(rel_pick_av),
-  ) 
-
-draft_cfb |>
   filter(feeder == TRUE) |>
   ggplot(aes(x = rel_pick_av)) +
   geom_density() +
   facet_wrap(~college)
+
+# Let's expand to overall school size. We'll define schools as big, medium, or small
+draft_cfb |>
+  summarize(
+    draft_picks = n(),
+    size = if_else(n() > 30, "big", if_else(n() > 5, "medium", "small")),
+    draft_pick = pick,
+    .by = college
+  ) |> ggplot(aes(x = size, y = draft_pick)) +
+  geom_boxplot() +
+  scale_y_reverse()
+
+draft_cfb |>
+  summarize(
+    draft_picks = n(),
+    size = if_else(n() > 30, "big", if_else(n() > 5, "medium", "small")),
+    rel_value = rel_pick_av,
+    .by = college
+  ) |> ggplot(aes(x = size, y = rel_value)) +
+  geom_boxplot() 
+
+draft_cfb |>
+  summarize(
+    draft_picks = n(),
+    size = if_else(n() > 30, "big", if_else(n() > 5, "medium", "small")),
+    rel_value = rel_pick_av,
+    pos_group = pos_group,
+    .by = college
+  ) |> ggplot(aes(x = rel_value, color = size)) +
+  geom_density() + 
+  facet_wrap(~pos_group)
 
 # Round 6: Measurables ----
 #height
