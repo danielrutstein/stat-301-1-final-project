@@ -987,25 +987,14 @@ draft_cfb |>
   facet_wrap(~pos_group)
 
 ## National Champs Analysis ----
-champs <- c("Auburn", "Alabama", "Alabama", "Florida St.", "Ohio St.", "Alabama", "Clemson", "Alabama", "Clemson", "LSU")
-yrs <- unique(draft_cfb$year)
+champs <- c("Auburn 2011", "Alabama 2012", "Alabama 2013", "Florida St. 2014", "Ohio St. 2015", "Alabama 2016", "Clemson 2017", "Alabama 2018", "Clemson 2019", "LSU 2020")
+
 draft_cfb |>
   mutate(
-    for (i in seq_along(champs)) {
-      cfb_champ = if_else(
-        college == champs[[i]] & year == yrs[[i]], 
-        TRUE, FALSE
-      )
-    }
-  ) |> select(cfb_champ)
+      cfb_champ = if_else(str_c(college, " ", year) %in% champs , TRUE, FALSE)
+  ) |> select(player, cfb_champ)
 
-for(i in seq_along(colleges)) {
-  college_st = if_else(
-    str_detect(colleges[[i]], college_st) == TRUE, 
-    colleges_st[[i]],
-    college_st
-  )
-}
+
 
 
 
