@@ -882,7 +882,7 @@ draft_geo <- draft_geo |>
     )
   )
 
-## Begin Analysis ----
+## by state ----
 #how many players are drafted in the state they played college football, and does it relate to performance?
 draft_geo |>
   mutate(
@@ -894,6 +894,7 @@ draft_geo |>
     rel_value = mean(rel_pick_av)
   )
 
+#by region ----
 #lets expand it to region since borders can differ (Providence and Boston vs Sacramento and San Diego)
 state.division
 #function for regions
@@ -909,19 +910,38 @@ for(i in seq_along(state.abb)) {
 }
 region <- tibble(player_id,college_region,team_region)
 
-draft_geo <- draft_geo |>
+draft_geo_r <- draft_geo |>
   left_join(region)
 
-draft_geo |>
-  filter(team_region == levels(state.division))
+#region and performance
+draft_geo_r <- draft_geo_r |>
+  filter(team_region %in% state.division & college_region %in% state.division) |>
   mutate(
     region_match = if_else(team_region == college_region, TRUE, FALSE)
-  ) |> group_by(region_match) |>
+  ) 
+
+draft_geo_r |> group_by(region_match) |>
   summarize(
     n = n(),
     exp_value = mean(rel_w_av),
     rel_value = mean(rel_pick_av)
   )
+
+exp_region_pct <- draft_geo_r |>
+  count(college_region) 
+
+draft_geo_r |>
+  left_join(exp_region_pct)
+
+
+draft_geo_r |>
+  group_by(team, team_region) |>
+  summarize(
+    match_pct = sum(region_match)/n()
+    
+  ) |> arrange(desc(match_pct))
+
+
 
 
 # scratch work ----
