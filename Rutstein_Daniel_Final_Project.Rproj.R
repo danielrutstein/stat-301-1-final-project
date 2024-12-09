@@ -954,6 +954,37 @@ draft_geo_r |>
 
 
 #Round 5: College Conference/Performance ----
+draft_cfb <- draft_geo |>
+  mutate(
+    conference = fct_collapse(college,
+      "ACC" = c("Boston Col.", "Clemson", "Louisville", "Miami (FL)", "North Carolina St.", "North Carolina", "Pittsburgh", "Virginia", "Virginia Tech", "Wake Forest", "Duke", "Florida St.", "Georgia Tech", "Syracuse"),
+      "Big Ten" = c("Iowa", "Maryland", "Michigan", "Michigan St.", "Minnesota", "Ohio St.", "Penn St.", "Purdue", "Wisconsin", "Illinois", "Indiana", "Nebraska", "Northwestern", "Rutgers"),
+      "Big 12" = c("Baylor", "Iowa St.", "Kansas St.", "Oklahoma", "Oklahoma St.", "Texas Tech", "West Virginia", "Kansas", "TCU", "Texas"),
+      "Pac-12" = c("Arizona St.", "Oregon", "Oregon St.", "UCLA", "Utah", "Washington St.", "Arizona", "California", "Colorado", "Stanford", "USC", "Washington"),
+      "SEC" = c("Alabama", "Arkansas", "Auburn", "Florida", "Georgia", "Kentucky", "LSU", "Mississippi St.", "Missouri", "Mississippi", "South Carolina", "Tennessee", "Texas A&M"),
+      other_level = "Other"
+    )
+  )
+
+# is there a difference in value?
+draft_cfb |>
+  summarize(
+    n = n(),
+    exp_value = mean(rel_w_av),
+    rel_value = mean(rel_pick_av),
+    .by = conference
+  )
+
+draft_cfb |>
+  ggplot(aes(x = conference, y = rel_pick_av)) +
+  geom_boxplot()
+
+# let's see by position
+draft_cfb |>
+  ggplot(aes(x = rel_pick_av, y = conference)) +
+  geom_boxplot() +
+  geom_mean_lines(aes(x0 = median(rel_pick_av))) +
+  facet_wrap(~pos_group)
 
 # scratch work ----
 ## region ----
