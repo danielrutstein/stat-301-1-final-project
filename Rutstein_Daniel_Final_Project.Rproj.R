@@ -1,10 +1,148 @@
+# Expedited Database Setup ----
+library(tidyverse)
+library(nflplotR)
+library(tidymodels)
+
+draft_prospects <- read_csv("data/nfl_draft_prospects.csv", guess_max = 13000)|>
+  select(
+    player_id, player_name, overall, school_name, school_abbr, pick, link, traded, trade_note, pick, weight, height, pos_rk, ovr_rk, draft_year, grade
+  ) |> rename(
+    pick_rd = pick, college_mascot = school_name, college_abbr = school_abbr 
+  )
+draft_fbr_11_20 <- readxl::read_xlsx("data/nfldraft_11_20.xlsx")
+coaches_fbr_11_20 <- readxl::read_xlsx("data/nfl_coaches_11_20.xlsx")
+draft <- draft_fbr_11_20 |>
+  inner_join(draft_prospects, join_by(pick == overall, year == draft_year)) |>
+  left_join(coaches_fbr_11_20, join_by(year, team))
+draft <- draft |>
+  complete(fill = list(rel_w_av = 0, w_av = 0, dr_av = 0, gp = 0)) 
+draft <- draft |>
+  mutate(
+    team = fct_recode(team,
+                      "LAC" = "SDG",
+                      "LAR" = "STL",
+                      "LVR" = "OAK"
+    )
+  ) 
+std_pos_order <- c("QB", "RB", "WR", "TE", "OL", "IDL", "EDGE", "LB", "DB", "ST")
+draft <- draft |>
+  mutate(
+    pos_group = fct_collapse(pos,
+                             "RB" = c("RB", "FB"),
+                             "OL" = c("C", "G", "T", "OL"),
+                             "IDL" = c("DL", "DT", "NT"),
+                             "EDGE" = c("DE", "OLB"),
+                             "LB" = c("ILB", "LB"),
+                             "DB" = c("DB", "CB","S"),
+                             "ST" = c("K", "LS", "P")
+    ),
+    pos_group = fct_relevel(pos_group, std_pos_order)
+  )
+draft <- draft |>
+  mutate(
+    career_length = played_to - year, 
+    active = if_else(played_to == 2024, TRUE, FALSE)
+  ) 
+
+draft <- draft |>
+  mutate(
+    log_w_av = (w_av / (2.275 + 7.054 * log(2024 - year))),
+    rel_w_av = log_w_av/mean(log_w_av),
+    exp_pick_av = (rel_w_av / (4.263 - 0.7171 * log(pick))),
+    rel_pick_av = exp_pick_av - mean(exp_pick_av),
+    avg_w_av = if_else(career_length > 0, w_av / career_length, 0)
+  ) 
+
+### Load Datasets 
+#load and join datasets to main "draft" data frame
+draft_prospects <- read_csv("data/nfl_draft_prospects.csv", guess_max = 13000)|>
+  select(
+    player_id, player_name, overall, school_name, school_abbr, pick, link, traded, trade_note, pick, weight, height, pos_rk, ovr_rk, draft_year, grade
+  ) |> rename(
+    pick_rd = pick, college_mascot = school_name, college_abbr = school_abbr 
+  )
+
+draft_fbr_11_20 <- readxl::read_xlsx("data/nfldraft_11_20.xlsx")
+coaches_fbr_11_20 <- readxl::read_xlsx("data/nfl_coaches_11_20.xlsx")
+
+### Join Datasets
+#official join statement
+draft <- draft_fbr_11_20 |>
+  inner_join(draft_prospects, join_by(pick == overall, year == draft_year)) |>
+  left_join(coaches_fbr_11_20, join_by(year, team))
+
+draft <- draft |>
+  complete(fill = list(rel_w_av = 0, w_av = 0, dr_av = 0, gp = 0)) 
+
+### Clean/Add Variables
+# ignore relocation for Chargers, Raiders and Rams strings (they're the same team for our purposes)
+draft <- draft |>
+  mutate(
+    team = fct_recode(team,
+                      "LAC" = "SDG",
+                      "LAR" = "STL",
+                      "LVR" = "OAK"
+    )
+  ) 
+
+#simplify position groups to standard groupings
+std_pos_order <- c("QB", "RB", "WR", "TE", "OL", "IDL", "EDGE", "LB", "DB", "ST")
+draft <- draft |>
+  mutate(
+    pos_group = fct_collapse(pos,
+                             "RB" = c("RB", "FB"),
+                             "OL" = c("C", "G", "T", "OL"),
+                             "IDL" = c("DL", "DT", "NT"),
+                             "EDGE" = c("DE", "OLB"),
+                             "LB" = c("ILB", "LB"),
+                             "DB" = c("DB", "CB","S"),
+                             "ST" = c("K", "LS", "P")
+    ),
+    pos_group = fct_relevel(pos_group, std_pos_order)
+  )
+
+# add helpful variables
+draft <- draft |>
+  mutate(
+    career_length = played_to - year, 
+    active = if_else(played_to == 2024, TRUE, FALSE),
+    dr_day = fct_collapse(as.factor(round),
+                          "Day 1" = "1",
+                          "Day 2" = c("2","3"),
+                          "Day 3" = c("4","5", "6", "7")
+    )
+  ) 
+
+# weight player value relative to log expectation (for draft year)
+draft <- draft |>
+  mutate(
+    log_w_av = (w_av / (2.275 + 7.054 * log(2024 - year))),
+    rel_w_av = log_w_av/mean(log_w_av),
+    avg_w_av = if_else(career_length > 0, w_av / career_length, 0)
+  ) 
+
+# weight player value relative to linear expectation (for draft year)
+draft <- draft |>
+  mutate(
+    rel_pick_av = rel_w_av - (4.263 - 0.7171 * log(pick))
+  ) 
+
+
+
+
+
+
+
+
+
+
+
+# Database setup ---- 
 #load packages
 library(tidyverse)
 library(nflplotR)
 library(tidymodels)
 
-# Database setup ---- 
-# run this
 draft_prospects <- read_csv("data/nfl_draft_prospects.csv", guess_max = 13000)|>
   select(
     player_id, player_name, overall, school_name, school_abbr, pick, link, traded, trade_note, pick, weight, height, pos_rk, ovr_rk, draft_year, grade
@@ -655,7 +793,7 @@ draft_coach |>
 
 #find state using college_rankings database
 college <- levels(as.factor(draft$college))
-college_st <- draft_college
+college_st <- college
 c <- read_csv("data/college_rankings.csv") 
 colleges <- c$institution
 colleges_st <- c$state_abbr
@@ -745,10 +883,40 @@ draft_geo <- draft_geo |>
   )
 
 ## Begin Analysis ----
-view(draft_geo) |>
+#how many players are drafted in the state they played college football, and does it relate to performance?
+draft_geo |>
   mutate(
     state_match = if_else(team_st == college_st, TRUE, FALSE)
   ) |> group_by(state_match) |>
+  summarize(
+    n = n(),
+    exp_value = mean(rel_w_av),
+    rel_value = mean(rel_pick_av)
+  )
+
+#lets expand it to region since borders can differ (Providence and Boston vs Sacramento and San Diego)
+state.division
+#function for regions
+player_id <- draft_geo$player_id
+college_region <- draft_geo$college_st
+team_region <- draft_geo$team_st
+
+for(i in seq_along(state.abb)) {
+  college_region = str_replace_all(
+    college_region, state.abb[[i]], as.character(state.division[[i]]))
+  team_region = str_replace_all(
+    team_region, state.abb[[i]], as.character(state.division[[i]]))
+}
+region <- tibble(player_id,college_region,team_region)
+
+draft_geo <- draft_geo |>
+  left_join(region)
+
+draft_geo |>
+  filter(team_region == levels(state.division))
+  mutate(
+    region_match = if_else(team_region == college_region, TRUE, FALSE)
+  ) |> group_by(region_match) |>
   summarize(
     n = n(),
     exp_value = mean(rel_w_av),
