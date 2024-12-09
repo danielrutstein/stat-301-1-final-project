@@ -1125,17 +1125,53 @@ draft |>
   facet_wrap(~pos_group)
 
 
-## Round 7: The "Experts" ----
-
+# Round 7: The "Experts" ----
+## Setup ----
 # To calculate the difference between the media's perception of value and the NFL's, 
 # we will use our model of expected value by pick and assume the media "drafts" in the order of their rankings
-# calcylate weighted difference as ranking plugged into draft pick model - draft pick in draft pick model
-  
-draft_media <- draft |>
+# calculate weighted difference as ranking plugged into draft pick model - draft pick in draft pick model
+draft |>
   mutate(
     diff_rk = pick - ovr_rk,
     w_diff = (4.263 - 0.7171 * log(ovr_rk)) - (4.263 - 0.7171 * log(pick))
   ) |> arrange(desc(w_diff)) |> select(player, pick, diff_rk, w_diff)
+  
+# ovr_rk appears to be a variable where missing values are significant, let's figure out what the NAs mean
+draft |> 
+  filter(is.na(ovr_rk)) |> 
+  arrange(pick) |>
+  select(player, year, pick, ovr_rk)
+
+#except for D.J. Hayden and Gareon Conley, it appears NA means the player was not good enough in ESPN's eyes to be ranked
+# for our model, we will rank these players 1 higher than the highest (worst) ranking in their class
+max_espn <- draft |> summarize(max_rk = max(ovr_rk, na.rm = TRUE), .by = year)
+
+draft |>
+  left_join(max_espn) |>
+  mutate(
+    ovr_rk = if_else(player == "D.J. Hayden", 28, ovr_rk),
+    ovr_rk = if_else(player == "Gareon Conley", 16, ovr_rk),
+    ovr_rk = if_else(is.na(ovr_rk), max_rk + 1, ovr_rk)
+  ) |> arrange(desc(ovr_rk))
+  
+# With these concerns taken care of, let's form a new tibble
+max_espn <- draft |> summarize(max_rk = max(ovr_rk, na.rm = TRUE), .by = year)
+draft_espn <- draft |>
+  mutate(
+    diff_rk = pick - ovr_rk,
+    w_diff = (4.263 - 0.7171 * log(ovr_rk)) - (4.263 - 0.7171 * log(pick))
+  )
+
+#let's see who's better at scouting
+draft_espn |>
+  ggplot(aes(x = w_diff, y = rel_pick_av)) +
+  geom_point(alpha = 0.3)
+
+draft_espn |>
+  mutate(espn_likes = if_else(w_diff >= 0, TRUE, FALSE)) |> 
+  ggplot(aes(x = espn_likes, y = rel_pick_av)) +
+  geom_boxplot()
+  
 
 
 
