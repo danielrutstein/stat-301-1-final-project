@@ -1047,18 +1047,41 @@ draft_cfb |>
   facet_wrap(~college)
 
 # Round 6: Measurables ----
+#height
+draft |>
+  ggplot(aes(x = height, y = rel_pick_av)) +
+  geom_point(alpha = 0.1) +
+  geom_smooth(method = "lm") +
+  facet_wrap(~pos_group)
+
+#weight
+draft |>
+  ggplot(aes(x = weight, y = rel_pick_av)) +
+  geom_point(alpha = 0.1) +
+  geom_smooth(method = "lm") +
+  facet_wrap(~pos_group)
+
+#bmi
 draft |>
   mutate(
     bmi = weight * 730 / (height^2)
   ) |>
   ggplot(aes(x = bmi, y = rel_pick_av)) +
   geom_point(alpha = 0.1) +
+  geom_smooth(method = "lm") +
   facet_wrap(~pos_group)
 
+# are players getting bigger or smaller?
 draft |>
-  ggplot(aes(x = height, y = rel_pick_av)) +
-  geom_point(alpha = 0.3) +
+  mutate(
+    bmi = weight * 730 / (height^2)
+  ) |>
+  ggplot(aes(x = as.factor(year), y = bmi)) +
+  geom_boxplot() 
   facet_wrap(~pos_group)
+
+
+
 
 
 
