@@ -1156,10 +1156,15 @@ draft |>
   
 # With these concerns taken care of, let's form a new tibble
 max_espn <- draft |> summarize(max_rk = max(ovr_rk, na.rm = TRUE), .by = year)
+
 draft_espn <- draft |>
+  left_join(max_espn) |>
   mutate(
+    ovr_rk = if_else(player == "D.J. Hayden", 28, ovr_rk),
+    ovr_rk = if_else(player == "Gareon Conley", 16, ovr_rk),
+    ovr_rk = if_else(is.na(ovr_rk), max_rk + 1, ovr_rk),
     diff_rk = pick - ovr_rk,
-    w_diff = (4.263 - 0.7171 * log(ovr_rk)) - (4.263 - 0.7171 * log(pick))
+    w_diff = (4.263 - 0.7171 * log(ovr_rk)) - (4.263 - 0.7171 * log(pick)),
   )
 
 #let's see who's better at scouting
@@ -1168,9 +1173,10 @@ draft_espn |>
   geom_point(alpha = 0.3)
 
 draft_espn |>
-  mutate(espn_likes = if_else(w_diff >= 0, TRUE, FALSE)) |> 
-  ggplot(aes(x = espn_likes, y = rel_pick_av)) +
-  geom_boxplot()
+  mutate(espn_likes = if_else(w_diff >= 0, "ESPN", "NFL")) |> 
+  ggplot(aes(x = rel_w_av, color = espn_likes, fill = espn_likes)) +
+  geom_density(alpha = 0.3) +
+  facet_wrap(~pos_group)
   
 
 
