@@ -1126,10 +1126,16 @@ draft |>
 
 
 ## Round 7: The "Experts" ----
+
+# To calculate the difference between the media's perception of value and the NFL's, 
+# we will use our model of expected value by pick and assume the media "drafts" in the order of their rankings
+# calcylate weighted difference as ranking plugged into draft pick model - draft pick in draft pick model
+  
 draft_media <- draft |>
   mutate(
-    diff_rk = (pick - ovr_rk) * (4.263 - 0.7171 * log(pick))
-  ) |> arrange(desc(diff_rk))
+    diff_rk = pick - ovr_rk,
+    w_diff = (4.263 - 0.7171 * log(ovr_rk)) - (4.263 - 0.7171 * log(pick))
+  ) |> arrange(desc(w_diff)) |> select(player, pick, diff_rk, w_diff)
 
 
 
