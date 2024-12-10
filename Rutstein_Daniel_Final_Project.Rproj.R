@@ -854,7 +854,7 @@ draft_geo <- draft |>
   left_join(college_geo) 
 
 draft_geo <- draft_geo |>
-  filter(college_region %in% state.division) |>
+  filter(college_st %in% state.abb) |>
   mutate(team_st = fct_collapse(team,
       "CA" = c("SFO", "LAR", "LAC"),
       "FL" = c("MIA", "TAM", "JAX"),
@@ -899,7 +899,7 @@ draft_geo |>
   mutate(
     state_match = if_else(team_st == college_st, TRUE, FALSE)
   ) |> ggplot(aes(x = rel_pick_av, color = state_match)) +
-  geom_density()
+  geom_density() 
   
 
 ## by region ----
@@ -923,20 +923,49 @@ draft_geo_r <- draft_geo |>
 
 #let's analyze
 #do teams target "hometown" players more frequently at different times of the draft?"
-draft_geo_r |>
-  ggplot(aes(x = round, fill = region_match)) +
-  geom_bar()
-
 draft_geo_r <- draft_geo_r |>
   mutate(
     region_match = if_else(team_region == college_region, TRUE, FALSE)
   ) 
 
-#how do hometown picks perform?
 draft_geo_r |>
-  ggplot(aes(x = region_match, y = rel_w_av)) +
-  geom_boxplot() +
-  facet_wrap(~team_region)
+  ggplot(aes(x = round, fill = region_match)) +
+  geom_bar()
+
+#how do hometown picks perform?
+region_freq <- draft_geo_r |>
+  summarize(
+    match_pct = n()/nrow(draft_geo_r),
+    .by = college_region
+  ) 
+
+exp_match_pct <- draft_geo_r$team_region
+v_college_region <- region_freq$college_region
+v_match_pct <- region_freq$match_pct
+for(i in seq_along(region_freq)) {
+    exp_match_pct = if_else(
+      str_detect(exp_match_pct, v_college_region[[i]] == TRUE), 
+      v_match_pct[[i]], 
+      exp_match_pct
+    )
+}
+
+  group_by(team, team_region, region_match) |>
+  summarize(
+    pct_match = n()/nrow(draft_geo_r)
+  ) 
+  
+
+draft_geo_r |>
+  filter(region_match == TRUE) |>
+  summarize(
+    
+  )
+  ggplot(aes(x = team)) +
+  geom_bar(aes(color = region_match, fill = team), width = 0.5) +
+  scale_color_nfl(type = "secondary") +
+  scale_fill_nfl(alpha = 0.4)
+  
 
 # Looks like they don't become superstars. Let's check that.
 draft_geo_r |>
