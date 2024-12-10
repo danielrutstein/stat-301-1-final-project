@@ -297,7 +297,7 @@ draft |>
 ### Round 6: Alma Mater Analysis
 **What is the relationship between college conference/other college groupings and draft pick success rate?**
 
-### *Round 7: Who the H*** Is Mel Kiper?*
+## *Round 7: Who the H*** Is Mel Kiper?*
 **How do draft picks that deviate from media “consensus” behave when they are either a “reach” (against media consensus) or a “steal” (agree with media consensus)?**
 
 
