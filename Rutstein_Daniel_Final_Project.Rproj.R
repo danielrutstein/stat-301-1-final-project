@@ -517,11 +517,32 @@ team <- draft_class$team
 rc_cycle <- tibble(team, year, rc_cycle_value)
 
 draft_cycle <- draft_class |>
-  right_join(rc_cycle, join_by(team == team, year == year))
+  right_join(rc_cycle, join_by(team == team, year == year)) |>
+  filter(year <= 2020)
 
 draft_cycle |>
   ggplot(aes(x = wins, y = rc_cycle_value)) +
   geom_boxplot(aes(group = cut_width(wins, 1)))
+
+draft_cycle |>
+  ggplot(aes(x = wins, y = rc_cycle_value)) +
+  geom_boxplot(aes(group = cut_width(wins, 1)))
+
+draft_cycle |>
+  group_by(team, year) |>
+  ggplot(aes(x = rc_cycle_value, y = wins)) +
+  facet_wrap(~year) +
+  geom_smooth(method = "lm", formula = y~x, alpha = 0.3, color = "grey75") +
+  geom_mean_lines(aes(x0 = 1, y0 = .5)) +
+  geom_nfl_logos(aes(team_abbr = team), width = 0.01, alpha = 0.7) +
+  labs(
+    x = "average draft pick value",
+    y = "win percentage",
+    caption = "Data: Sports Reference",
+    title = "Mapping of relationship between draft success and team success"
+  ) 
+
+
 
 
 
