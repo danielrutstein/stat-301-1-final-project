@@ -941,12 +941,12 @@ region_freq <- draft_geo_r |>
 
 exp_match_pct <- draft_geo_r$team_region
 v_college_region <- region_freq$college_region
-v_match_pct <- region_freq$match_pct
+v_match_pct <- as.character(region_freq$match_pct)
 for(i in seq_along(region_freq)) {
-    exp_match_pct = if_else(
-      str_detect(exp_match_pct, v_college_region[[i]] == TRUE), 
-      v_match_pct[[i]], 
-      exp_match_pct
+    exp_match_pct = str_replace_all(
+      exp_match_pct, 
+      college_region[[i]], 
+      match_pct[[i]]
     )
 }
 
