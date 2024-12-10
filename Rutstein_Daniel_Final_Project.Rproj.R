@@ -493,41 +493,23 @@ draft |>
 
 ## Playoffs & Super Bowls ----
 # does the rookie contract players correlate w/ super bowl wins
-mutate a first_pick variable so we can see 
-draft_fp <- draft |> 
+draft_class <- draft |> 
   group_by(year, team) |>
-  mutate(
-      first_pick = if_else(pick == min(pick), TRUE, FALSE)
-    ) 
-
-draft_fp
-
-draft_fp |> 
   summarize(
-    avg_value = sum(rel_pick_av, na.rm = TRUE)/n(),
-    tot_post_win = sum(post_win, first_pick == TRUE),
-    .by = team
-  ) |>  ggplot(aes(x = avg_value, y = tot_post_win)) +
-  geom_smooth(method = "lm", formula = y~x, alpha = 0.3, color = "grey75") +
-  geom_mean_lines(aes(x0 = 1, y0 = .5)) +
-  geom_nfl_logos(aes(team_abbr = team), width = 0.065, alpha = 0.7) +
-  labs(
-    x = "average draft pick value vs expectation",
-    y = "post win",
-    caption = "Data: Sports Reference",
-    title = "Mapping of relationship between draft success and postseason success"
-  ) 
+    rel_value = sum(rel_pick_av)
+  ) |> arrange(team)
 
-
-
-
-class_value <- funciton (x, var) {
-  group_by(x, y) |>
-    summarize(
-      sum(y)
-    )
+rc_years <- c(2011,2012,2013,2014,2015, 2016, 2027)
+class_value <- draft_class$rel_value
+class_yr <- draft_class$year
+rc_cycle_value <- vector(length = length(class_value))
+for (i in 1:length(rc_years)) {
+  rc_cycle_value = if_else(
+    (rc_years[[i]] + 3) == class_yr,
+    class_value[[i]] + class_value[[i+1]] + class_value[[i+2]] + class_value[[i+3]],
+    NA
+  )
 }
-  
 
 
 years <- c(2011,2012,2013,2014,2015,2016,2017,2018, 2019, 2020)
@@ -589,14 +571,6 @@ if_else(year > 2013,
 }
 }
 
-
-
-|> pivot_wider(
-    names_from = year,
-    values_from = class_value
-  ) summarize(
-    across
-  )
 
 # Round 2: Age Exploration ----
 draft_age <- draft |>
@@ -1502,6 +1476,46 @@ draft |>
 
 
 
+## Draft Class -----
+#mutate a first_pick variable so we can see 
+draft_fp <- draft |> 
+  group_by(year, team) |>
+  mutate(
+    first_pick = if_else(pick == min(pick), TRUE, FALSE)
+  ) 
+
+draft_fp
+
+draft_fp |> 
+  summarize(
+    avg_value = sum(rel_pick_av, na.rm = TRUE)/n(),
+    tot_post_win = sum(post_win, first_pick == TRUE),
+    .by = team
+  ) |>  ggplot(aes(x = avg_value, y = tot_post_win)) +
+  geom_smooth(method = "lm", formula = y~x, alpha = 0.3, color = "grey75") +
+  geom_mean_lines(aes(x0 = 1, y0 = .5)) +
+  geom_nfl_logos(aes(team_abbr = team), width = 0.065, alpha = 0.7) +
+  labs(
+    x = "average draft pick value vs expectation",
+    y = "post win",
+    caption = "Data: Sports Reference",
+    title = "Mapping of relationship between draft success and postseason success"
+  ) 
+
+
+
+
+class_value <- funciton (x, var) {
+  group_by(x, y) |>
+    summarize(
+      sum(y)
+    )
+}
+
+
+
+
+
 
 
 
@@ -1527,6 +1541,14 @@ college_st
 
 
 
+
+
+|> pivot_wider(
+  names_from = year,
+  values_from = class_value
+) summarize(
+  across
+)
 
 
 
