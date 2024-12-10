@@ -497,34 +497,31 @@ draft |>
 draft_class <- draft |> 
   group_by(year, team) |>
   summarize(
-    rel_value = sum(rel_pick_av)
+    rel_value = sum(rel_pick_av),
+    wins = mean(win),
+    post_wins = mean(post_win)
   ) |> arrange(team)
 
-rc_years <- c(2011,2012,2013,2014,2015,2016,2017)
 class_value <- draft_class$rel_value
-class_yr <- draft_class$year + 3
+
 rc_cycle_value <- vector(length = length(class_yr))
-for (i in seq_along(rc_years)) {
+for (i in seq_along(1:(length(class_value)-3))) {
   rc_cycle_value = if_else(
-    (rc_years[[i]] + 3) == class_yr,
+    class_value[[i]] == class_value,
     class_value[[i]] + class_value[[i+1]] + class_value[[i+2]] + class_value[[i+3]],
     rc_cycle_value
   )
 }
+year <- draft_class$year + 3
+team <- draft_class$team
+rc_cycle <- tibble(team, year, rc_cycle_value)
 
-for (i in seq_along(1:317)) {
-  rc_cycle_value = if_else(
-    class_yr[[i]] == class_yr,
-    class_value[[i]] + class_value[[i+1]] + class_value[[i+2]] + class_value[[i+3]],
-    rc_cycle_value
-  )
-}
+draft_cycle <- draft_class |>
+  right_join(rc_cycle, join_by(team == team, year == year))
 
-
-draft_class <- tibble(draft_class, rc_cycle_value)
-
-draft_class |>
-  arrange(desc(rc_cycle_value))
+draft_cycle |>
+  ggplot(aes(x = wins, y = rc_cycle_value)) +
+  geom_boxplot(aes(group = cut_width(wins, 1)))
 
 
 
