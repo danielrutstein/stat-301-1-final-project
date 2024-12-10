@@ -502,9 +502,9 @@ draft_class <- draft |>
 
 rc_years <- c(2011,2012,2013,2014,2015,2016,2017)
 class_value <- draft_class$rel_value
-class_yr <- draft_class$year
-rc_cycle_value <- vector(length = length(class_value))
-for (i in 1:length(rc_years)) {
+class_yr <- draft_class$year + 3
+rc_cycle_value <- vector(length = length(class_yr))
+for (i in seq_along(rc_years)) {
   rc_cycle_value = if_else(
     (rc_years[[i]] + 3) == class_yr,
     class_value[[i]] + class_value[[i+1]] + class_value[[i+2]] + class_value[[i+3]],
@@ -512,9 +512,9 @@ for (i in 1:length(rc_years)) {
   )
 }
 
-for (i in 1:length(class_yr)) {
+for (i in seq_along(1:317)) {
   rc_cycle_value = if_else(
-    (class_yr[[i]] < 2018),
+    class_yr[[i]] == class_yr,
     class_value[[i]] + class_value[[i+1]] + class_value[[i+2]] + class_value[[i+3]],
     rc_cycle_value
   )
