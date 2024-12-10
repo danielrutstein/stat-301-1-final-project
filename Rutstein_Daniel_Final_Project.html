@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Daniel Rutstein">
-<meta name="dcterms.date" content="2024-12-07">
+<meta name="dcterms.date" content="2024-12-10">
 
 <title>Daniel Rutstein</title>
 <style>
@@ -3053,12 +3053,27 @@ vertical-align: -.125em;
    
   <ul>
   <li><a href="#summary" id="toc-summary" class="nav-link active" data-scroll-target="#summary">Summary</a></li>
+  <li><a href="#building-the-draft-class-setting-up-the-draft-database" id="toc-building-the-draft-class-setting-up-the-draft-database" class="nav-link" data-scroll-target="#building-the-draft-class-setting-up-the-draft-database">Building the Draft Class: Setting up the <code>draft</code> database</a>
+  <ul>
   <li><a href="#adding-complexity-to-dataset" id="toc-adding-complexity-to-dataset" class="nav-link" data-scroll-target="#adding-complexity-to-dataset">Adding Complexity to Dataset</a></li>
+  </ul></li>
+  <li><a href="#pre-draft-scouting-a-univariate-analysis-of-the-nfl-draft" id="toc-pre-draft-scouting-a-univariate-analysis-of-the-nfl-draft" class="nav-link" data-scroll-target="#pre-draft-scouting-a-univariate-analysis-of-the-nfl-draft">Pre-Draft Scouting: A Univariate Analysis of the NFL Draft</a>
+  <ul>
   <li><a href="#finding-the-base-variable" id="toc-finding-the-base-variable" class="nav-link" data-scroll-target="#finding-the-base-variable">Finding the Base Variable</a></li>
   <li><a href="#cleaningadding-helpful-variables" id="toc-cleaningadding-helpful-variables" class="nav-link" data-scroll-target="#cleaningadding-helpful-variables">Cleaning/Adding Helpful Variables</a></li>
   <li><a href="#analysis-of-rel_w_av" id="toc-analysis-of-rel_w_av" class="nav-link" data-scroll-target="#analysis-of-rel_w_av">Analysis of rel_w_av</a></li>
   <li><a href="#analysis-of-pos_group" id="toc-analysis-of-pos_group" class="nav-link" data-scroll-target="#analysis-of-pos_group">Analysis of pos_group</a></li>
-  <li><a href="#round-1-does-being-good-at-drafting-matter" id="toc-round-1-does-being-good-at-drafting-matter" class="nav-link" data-scroll-target="#round-1-does-being-good-at-drafting-matter">Round 1: Does being good at drafting matter?</a></li>
+  </ul></li>
+  <li><a href="#the-eda-draft" id="toc-the-eda-draft" class="nav-link" data-scroll-target="#the-eda-draft">The EDA Draft</a>
+  <ul>
+  <li><a href="#round-1-the-main-event" id="toc-round-1-the-main-event" class="nav-link" data-scroll-target="#round-1-the-main-event">Round 1: The Main Event</a></li>
+  <li><a href="#round-2-age-takes-the-stage" id="toc-round-2-age-takes-the-stage" class="nav-link" data-scroll-target="#round-2-age-takes-the-stage">Round 2: Age Takes the Stage</a></li>
+  <li><a href="#round-3-tall-task" id="toc-round-3-tall-task" class="nav-link" data-scroll-target="#round-3-tall-task">Round 3: Tall Task</a></li>
+  <li><a href="#round-4-coaching-correlations" id="toc-round-4-coaching-correlations" class="nav-link" data-scroll-target="#round-4-coaching-correlations">Round 4: Coaching Correlations</a></li>
+  <li><a href="#round-5-hometown-heroes" id="toc-round-5-hometown-heroes" class="nav-link" data-scroll-target="#round-5-hometown-heroes">Round 5: Hometown Heroes</a></li>
+  <li><a href="#round-6-alma-mater-analysis" id="toc-round-6-alma-mater-analysis" class="nav-link" data-scroll-target="#round-6-alma-mater-analysis">Round 6: Alma Mater Analysis</a></li>
+  <li><a href="#round-7-who-the-h-is-mel-kiper" id="toc-round-7-who-the-h-is-mel-kiper" class="nav-link" data-scroll-target="#round-7-who-the-h-is-mel-kiper"><em>Round 7: Who the H</em>** Is Mel Kiper?*</a></li>
+  </ul></li>
   </ul>
 </nav>
 </div>
@@ -3068,7 +3083,7 @@ vertical-align: -.125em;
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Final Project: A 7-Round Draft Analysis</h1>
+<h1 class="title">Stat 301-1 Final Project: The EDA Draft</h1>
 <p class="subtitle lead"></p><div class="line-block">Final Project<br>
 Data Science 1 with R (STAT 301-1)</div><p></p>
 </div>
@@ -3087,7 +3102,7 @@ Data Science 1 with R (STAT 301-1)</div><p></p>
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">December 7, 2024</p>
+      <p class="date">December 10, 2024</p>
     </div>
   </div>
   
@@ -3129,17 +3144,38 @@ Note
 <p>Reminder of original database: This is the link to my main database, which is a compilation of 10 NFL Draft Classes<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> from 2011-2020, sourced from Sports Reference’s football website: Pro Football Reference.<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a> Pro Football Reference does not have a feature to download draft classes across years, so I copied and pasted each draft table into an excel spreadsheet (.xlsx), adding a <code>year</code> variable to distinguish which draft each observation was from and left the other observations unchanged. There are 29 variables and 2544 observations among the 10 draft classes in this file. <a href="https://www.pro-football-reference.com/years/2020/draft.htm">Source: Sports Reference</a></p>
 </div>
 </div>
-<div class="no-row-height column-margin column-container"><div id="fn2"><p><sup>2</sup> “2011-2020 NFL Draft Listing.” Sports Reference. Accessed November 3, 2024. https://www.pro-football-reference.com/years/2020/draft.htm. </p></div></div><div class="no-row-height column-margin column-container"><div id="fn1"><p><sup>1</sup> The NFL draft is an event that occurs every year after the football season ends to decide which team college (or in rare cases, international) players ready to turn professional will play for. Each team takes approximately 8 turns to pick players, in ascending order of team wins from the previous season (worst team goes first in each round), although teams are free to trade their draft picks to other teams for veteran players and/or other draft picks. The “draft class” is the group of drafted players in a given year, usually logged with the team and order in the selection process they were drafted.</p></div></div><section id="summary" class="level2">
-<h2 class="anchored" data-anchor-id="summary">Summary</h2>
-<p>At this juncture, the bulk of my progress has been in cleaning, conditioning, and preparing my data for thorough visualizations. I did some initial exploratory visualizations, but my principal objective was to make sure my dataset was prepared for a complex, meaningful data journey. Some of my most important milestones were appending (joining) two new datasets to the original draft pick database, finding and fitting a model to estimate draft pick value, and performing univariate/bivariate analyses on some of the most key variables in the dataset. While there is much iteration to be done with my exploration process, I believe I am in a much better place now than when I submitted Progress Memo 1 to navigate my data effectively.</p>
+<div class="no-row-height column-margin column-container"><div id="fn2"><p><sup>2</sup> “2011-2020 NFL Draft Listing.” Sports Reference. Accessed November 3, 2024. https://www.pro-football-reference.com/years/2020/draft.htm. </p></div></div><div class="no-row-height column-margin column-container"><div id="fn1"><p><sup>1</sup> The NFL draft is an event that occurs every year after the football season ends to decide which team college (or in rare cases, international) players ready to turn professional will play for. Each team takes approximately 8 turns to pick players, in ascending order of team wins from the previous season (worst team goes first in each round), although teams are free to trade their draft picks to other teams for veteran players and/or other draft picks. The “draft class” is the group of drafted players in a given year, usually logged with the team and order in the selection process they were drafted.</p></div></div><section id="summary" class="level1">
+<h1>Summary</h1>
+<p><strong>1) Building the Draft Class: Setting up the <code>draft</code> database</strong></p>
+<p><strong>2) Pre-Draft Scouting: A Univariate Analysis of the NFL Draft</strong></p>
+<p><strong>3) The EDA Draft: A 7-Round Multivariate Analysis of the NFL Draft</strong></p>
+<p><strong>Round 1: The Main Event</strong><br>
+<em>Does drafting well actually matter?</em></p>
+<p><strong>Round 2: Age Takes the Stage</strong><br>
+<em>What patterns can we find with player age when drafted and performance?</em></p>
+<p><strong>Round 3: Tall Task</strong><br>
+<em>Are there biases with height and weight, or are they uncorrelated?</em></p>
+<p><strong>Round 4: Coaching Correlations</strong><br>
+<em>How does draft pick success relate to NFL Head Coach regime success/failure?</em></p>
+<p><strong>Round 5: Hometown Heroes</strong><br>
+<em>Are “hometown” picks (when team drafts from nearby colleges) more likely than others? More successful than others?</em></p>
+<p><strong>Round 6: Alma Mater Analysis</strong><br>
+<em>What is the relationship between college conference/other college groupings and draft pick success rate?)</em></p>
+<p><strong>Round 7: Who the Heck Is Mel Kiper?</strong><br>
+<em>How do draft picks that deviate from media “consensus” behave when they are either a “reach” (against media consensus) or a “steal” (agree with media consensus?</em></p>
 </section>
-<section id="adding-complexity-to-dataset" class="level2 page-columns page-full">
-<h2 class="anchored" data-anchor-id="adding-complexity-to-dataset">Adding Complexity to Dataset</h2>
+<section id="building-the-draft-class-setting-up-the-draft-database" class="level1 page-columns page-full">
+<h1>Building the Draft Class: Setting up the <code>draft</code> database</h1>
+<section id="adding-complexity-to-dataset" class="level3 page-columns page-full">
+<h3 class="anchored" data-anchor-id="adding-complexity-to-dataset">Adding Complexity to Dataset</h3>
 <p>After submitting progress memo #1, my greatest concern was not having enough “meat on the bone”, per sé, to perform a complex enough EDA. Thus, I found two new datasets to join to my original draft profiles, adding 21 new variables to work with.</p>
 <p>The first database was sourced from Kaggle,<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a> containing ESPN.com draft data for each prospect. I am curious how the media performs relative to NFL professionals, so the ESPN position and overall rankings will be nteresting variables to explore. In addition, this database contains information on player height, weight, and whether the draft pick was traded, which gives further opprotunity to explore new research questions. The second database is a summary of NFL coaches by team from 2011-2020, sourced from Sports Reference in an excel spreadsheet I compiled just like my original dataset.<a href="#fn4" class="footnote-ref" id="fnref4" role="doc-noteref"><sup>4</sup></a> This dataset not only allows for us to see which coaches are most successful at draft picks, how draft pick success relates to turnover (number of coaches per team over the decade), but also contains inofrmation on wins and losses, playoff success, and Super Bowl wins that will be tremendously useful in exploring relationships between draft success and team success.</p>
 <div class="no-row-height column-margin column-container"><div id="fn3"><p><sup>3</sup> Lichtenstein, Jack. “ESPN NFL Draft Prospect Data.” Kaggle, May 5, 2021. https://www.kaggle.com/datasets/jacklichtenstein/espn-nfl-draft-prospect-data/data. </p></div><div id="fn4"><p><sup>4</sup> “2020 NFL Coaches.” Pro Football Reference. Accessed November 26, 2024. https://www.pro-football-reference.com/years/2020/coaches.htm. </p></div></div></section>
-<section id="finding-the-base-variable" class="level2">
-<h2 class="anchored" data-anchor-id="finding-the-base-variable">Finding the Base Variable</h2>
+</section>
+<section id="pre-draft-scouting-a-univariate-analysis-of-the-nfl-draft" class="level1">
+<h1>Pre-Draft Scouting: A Univariate Analysis of the NFL Draft</h1>
+<section id="finding-the-base-variable" class="level3">
+<h3 class="anchored" data-anchor-id="finding-the-base-variable">Finding the Base Variable</h3>
 <p>To lay the foundation of my EDA, I need to answer a simple yet ambiguous question: for the purposes of the project, which variable best approximates player success? The two candidates are <code>w_av</code>, which is Football Reference’s weighted career value for each player in the dataset across position, and <code>dr_av</code>, which uses the same formula, but omits any accumulated career value after leaving the team that drafted them. The pros of each are</p>
 <p><code>dr_av</code>: Theoretically, we want to know how valuable a draft pick was to the team that drafted them. Since a team does not care how a player performs for other teams after the player is no longer on their team, <code>dr_av</code> succeeds at ignoring this marginal performance.</p>
 <p><code>w_av</code>: Just because draft value is a more direct estimator of expected value to the team that drafted them, it is not necessarily the best. There is great variance to consider regarding how a player leaves a team. In a worst case, we have a Type II error where a player gets cut from the team that drafted them, then “breaks out” on another team that takes them on. However, even in this case, it may be the coaching staff’s fault for failing to recognize the talent their personnel staff provided for them, or failure to wait for the learning curve of the player with the 53-man roster constraint in the NFL. Furthermore, there are cases where the player is traded (and the team gets undetected value in the form of trade compensation), or the team is outbid on a second contract, even though they would have liked to retain the player in the absence of free agency.</p>
@@ -3434,14 +3470,14 @@ Figure 1: Expected value (mean w_av) by draft class
 </div>
 <p>The years appear to be more randomly distributed, so the model seems to fit expected value. We could also divide by mean, but this assumes that expected/average draft class value is the same across every year, which is not necessarily true (there is variance in the strength of each draft class). In conclusion, therefore, <code>rel_w_av</code> will be considered our main variable to estimate success of a draft pick in this exploration.</p>
 </section>
-<section id="cleaningadding-helpful-variables" class="level2">
-<h2 class="anchored" data-anchor-id="cleaningadding-helpful-variables">Cleaning/Adding Helpful Variables</h2>
+<section id="cleaningadding-helpful-variables" class="level3">
+<h3 class="anchored" data-anchor-id="cleaningadding-helpful-variables">Cleaning/Adding Helpful Variables</h3>
 <p>Reassigned <code>team</code> levels (“OAK”, “STL”, and “SDG”) to match with the (“LVR”, “LAR”, and “LAC”) levels to ignore team location. The Oakland Raiders, St.Louis Rams, and San Diego Chargers became the Oakland Raiders, St.Louis Rams, and San Diego Chargers in the 2010’s decade, but relocation does not affect team rosters or expected team performance. Thus, location should have no effect on analyzing the <code>team</code> variable, unless we are investigating geography.</p>
 <p>Added integer <code>career_length</code> and boolean <code>active</code> variables to easily recall how long a player played (or has played) in the NFL and whether they are still playing.</p>
 <p>Created <code>pos_group</code> variable to condense positions into the groups that the NFL talent evaluation community typically uses to bucket players. This makes digesting factor variables much easier, as this cuts our levels from 22 to 10.</p>
 </section>
-<section id="analysis-of-rel_w_av" class="level2">
-<h2 class="anchored" data-anchor-id="analysis-of-rel_w_av">Analysis of rel_w_av</h2>
+<section id="analysis-of-rel_w_av" class="level3">
+<h3 class="anchored" data-anchor-id="analysis-of-rel_w_av">Analysis of rel_w_av</h3>
 <p>Viewing the density plot of <code>rel_w_av</code> (see <a href="#fig-dist_value" class="quarto-xref">Figure 2</a>) and the boxplot of <code>rel_w_av</code> by <code>round</code> (see <a href="#fig-dist_value_rnd" class="quarto-xref">Figure 3</a>), the data behaves as we expect. Only 50.7% of players are “starters” for at least one NFL season, and only 22.9% are “starters: for at least 4 years (the duration of an NFL contract). Thus, it makes sense that the density of <code>rel_w_av</code> skews heavily to the right, since the near median draft pick does not even start for any season in the NFL. The long tail also makes sense since star players (Russell Wilson, Aaron Donald, Patrick Mahomes), return substantially more value to their teams over their careers than the average player. Grouping <code>rel_w_av</code> by round in <a href="#fig-dist_value_rnd" class="quarto-xref">Figure 3</a>, the pattern also follows exactly what would be expected: each quartile and the median always decreases as round increases. The soundness of <code>rel_w_av</code> in conforming to expected patterns supports the notion that <code>rel_w_av</code> is a fairly accurate estimator of success of a draft pick.</p>
 <div id="fig-dist_value" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
@@ -3464,8 +3500,8 @@ Figure 3: Distribution of player value by round
 </figure>
 </div>
 </section>
-<section id="analysis-of-pos_group" class="level2">
-<h2 class="anchored" data-anchor-id="analysis-of-pos_group">Analysis of pos_group</h2>
+<section id="analysis-of-pos_group" class="level3">
+<h3 class="anchored" data-anchor-id="analysis-of-pos_group">Analysis of pos_group</h3>
 <p>An important factor variable to consider in the exploration is position group (<code>pos_group</code> in tibble). Although <code>rel_w_av</code> attempts to determine how valuable a player is independent of position, each player in football performs a completely different role (unlike, say, baseball) and is evaluated on completely different criteria.</p>
 <div id="fig-pg-tile" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
@@ -3501,8 +3537,12 @@ Figure 6: Density of player value by round, grouped by position
 </div>
 <p>Furthermore, <a href="#fig-pg-value" class="quarto-xref">Figure 6</a> demonstrates that dropoffs in value by round differ by <code>pos_group</code>. For example, there is a sharp dropoff in value after the first two rounds for quarterbacks, whereas offensive linemen and defensive backs follow a steady linear decline in value.</p>
 </section>
-<section id="round-1-does-being-good-at-drafting-matter" class="level2">
-<h2 class="anchored" data-anchor-id="round-1-does-being-good-at-drafting-matter">Round 1: Does being good at drafting matter?</h2>
+</section>
+<section id="the-eda-draft" class="level1">
+<h1>The EDA Draft</h1>
+<section id="round-1-the-main-event" class="level2">
+<h2 class="anchored" data-anchor-id="round-1-the-main-event">Round 1: The Main Event</h2>
+<p><strong>Does drafting well actually matter?</strong></p>
 <p>Yes.</p>
 <div class="cell">
 <div class="cell-output-display">
@@ -3522,6 +3562,31 @@ Figure 6: Density of player value by round, grouped by position
 </div>
 </div>
 </div>
+</section>
+<section id="round-2-age-takes-the-stage" class="level2">
+<h2 class="anchored" data-anchor-id="round-2-age-takes-the-stage">Round 2: Age Takes the Stage</h2>
+<p><strong>What patterns can we find with player age when drafted and performance?</strong></p>
+</section>
+<section id="round-3-tall-task" class="level2">
+<h2 class="anchored" data-anchor-id="round-3-tall-task">Round 3: Tall Task</h2>
+<p><strong>Are there biases with height and weight, or are they uncorrelated?</strong></p>
+</section>
+<section id="round-4-coaching-correlations" class="level2">
+<h2 class="anchored" data-anchor-id="round-4-coaching-correlations">Round 4: Coaching Correlations</h2>
+<p><strong>How does draft pick success relate to NFL Head Coach regime success/failure?</strong></p>
+</section>
+<section id="round-5-hometown-heroes" class="level2">
+<h2 class="anchored" data-anchor-id="round-5-hometown-heroes">Round 5: Hometown Heroes</h2>
+<p><strong>Are “hometown” picks (when team drafts from nearby colleges) more likely than others? More successful than others?</strong></p>
+</section>
+<section id="round-6-alma-mater-analysis" class="level2">
+<h2 class="anchored" data-anchor-id="round-6-alma-mater-analysis">Round 6: Alma Mater Analysis</h2>
+<p><strong>What is the relationship between college conference/other college groupings and draft pick success rate?</strong></p>
+</section>
+<section id="round-7-who-the-h-is-mel-kiper" class="level2">
+<h2 class="anchored" data-anchor-id="round-7-who-the-h-is-mel-kiper"><em>Round 7: Who the H</em>** Is Mel Kiper?*</h2>
+<p><strong>How do draft picks that deviate from media “consensus” behave when they are either a “reach” (against media consensus) or a “steal” (agree with media consensus)?</strong></p>
+</section>
 </section>
 
 

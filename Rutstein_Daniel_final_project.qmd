@@ -1,5 +1,5 @@
 ---
-title: "Final Project: A 7-Round Draft Analysis"
+title: "Stat 301-1 Final Project: The EDA Draft"
 subtitle: |
   | Final Project 
   | Data Science 1 with R (STAT 301-1)
@@ -58,11 +58,37 @@ This is the link to my main database, which is a compilation of 10 NFL Draft Cla
 :::
 
 
-## Summary
-At this juncture, the bulk of my progress has been in cleaning, conditioning, and preparing my data for thorough visualizations. I did some initial exploratory visualizations, but my principal objective was to make sure my dataset was prepared for a complex, meaningful data journey. Some of my most important milestones were appending (joining) two new datasets to the original draft pick database, finding and fitting a model to estimate draft pick value, and performing univariate/bivariate analyses on some of the most key variables in the dataset. While there is much iteration to be done with my exploration process, I believe I am in a much better place now than when I submitted Progress Memo 1 to navigate my data effectively.
+# Summary
+**1) Building the Draft Class: Setting up the `draft` database**
+
+**2) Pre-Draft Scouting: A Univariate Analysis of the NFL Draft**
+
+**3) The EDA Draft: A 7-Round Multivariate Analysis of the NFL Draft**
+
+**Round 1: The Main Event**\
+*Does drafting well actually matter?*
+
+**Round 2: Age Takes the Stage**\
+*What patterns can we find with player age when drafted and performance?* 
+
+**Round 3: Tall Task**\
+*Are there biases with height and weight, or are they uncorrelated?*
+
+**Round 4: Coaching Correlations**\
+*How does draft pick success relate to NFL Head Coach regime success/failure?*
+
+**Round 5: Hometown Heroes**\
+*Are “hometown” picks (when team drafts from nearby colleges) more likely than others? More successful than others?*
+
+**Round 6: Alma Mater Analysis**\
+*What is the relationship between college conference/other college groupings and draft pick success rate?)*
+
+**Round 7: Who the Heck Is Mel Kiper?**\
+*How do draft picks that deviate from media “consensus” behave when they are either a “reach” (against media consensus) or a “steal” (agree with media consensus?*
 
 
-## Adding Complexity to Dataset
+# Building the Draft Class: Setting up the `draft` database
+### Adding Complexity to Dataset
 After submitting progress memo #1, my greatest concern was not having enough "meat on the bone", per sé, to perform a complex enough EDA. Thus, I found two new datasets to join to my original draft profiles, adding 21 new variables to work with.
 
 The first database was sourced from Kaggle,^[Lichtenstein, Jack. “ESPN NFL Draft Prospect Data.” Kaggle, May 5, 2021. https://www.kaggle.com/datasets/jacklichtenstein/espn-nfl-draft-prospect-data/data. ] containing ESPN.com draft data for each prospect. I am curious how the media performs relative to NFL professionals, so the ESPN position and overall rankings will be nteresting variables to explore. In addition, this database contains information on player height, weight, and whether the draft pick was traded, which gives further opprotunity to explore new research questions.
@@ -127,8 +153,8 @@ draft <- draft |>
 
 ```
 
-
-## Finding the Base Variable
+# Pre-Draft Scouting: A Univariate Analysis of the NFL Draft
+### Finding the Base Variable
 To lay the foundation of my EDA, I need to answer a simple yet ambiguous question: for the purposes of the project, which variable best approximates player success? The two candidates are `w_av`, which is Football Reference's weighted career value for each player in the dataset across position, and `dr_av`, which uses the same formula, but omits any accumulated career value after leaving the team that drafted them. The pros of each are 
 
 `dr_av`: Theoretically, we want to know how valuable a draft pick was to the team that drafted them. Since a team does not care how a player performs for other teams after the player is no longer on their team, `dr_av` succeeds at ignoring this marginal performance.
@@ -179,14 +205,14 @@ top10_rel_w_av <- draft |>
 ```
 The years appear to be more randomly distributed, so the model seems to fit expected value. We could also divide by mean, but this assumes that expected/average draft class value is the same across every year, which is not necessarily true (there is variance in the strength of each draft class). In conclusion, therefore, `rel_w_av` will be considered our main variable to estimate success of a draft pick in this exploration.
 
-## Cleaning/Adding Helpful Variables
+### Cleaning/Adding Helpful Variables
 Reassigned `team` levels ("OAK", "STL", and "SDG") to match with the ("LVR", "LAR", and "LAC") levels to ignore team location. The Oakland Raiders, St.Louis Rams, and San Diego Chargers became the Oakland Raiders, St.Louis Rams, and San Diego Chargers in the 2010's decade, but relocation does not affect team rosters or expected team performance. Thus, location should have no effect on analyzing the `team` variable, unless we are investigating geography. 
 
 Added integer `career_length` and boolean `active` variables to easily recall how long a player played (or has played) in the NFL and whether they are still playing.
 
 Created `pos_group` variable to condense positions into the groups that the NFL talent evaluation community typically uses to bucket players. This makes digesting factor variables much easier, as this cuts our levels from 22 to 10.
 
-## Analysis of rel_w_av
+### Analysis of rel_w_av
 Viewing the density plot of `rel_w_av` (see @fig-dist_value) and the boxplot of `rel_w_av` by `round` (see @fig-dist_value_rnd), the data behaves as we expect. Only 50.7% of players are "starters" for at least one NFL season, and only 22.9% are "starters: for at least 4 years (the duration of an NFL contract). Thus, it makes sense that the density of `rel_w_av` skews heavily to the right, since the near median draft pick does not even start for any season in the NFL. The long tail also makes sense since star players (Russell Wilson, Aaron Donald, Patrick Mahomes), return substantially more value to their teams over their careers than the average player. Grouping `rel_w_av` by round in @fig-dist_value_rnd, the pattern also follows exactly what would be expected: each quartile and the median always decreases as round increases. The soundness of `rel_w_av` in conforming to expected patterns supports the notion that `rel_w_av` is a fairly accurate estimator of success of a draft pick.
 
 ![Distribution of player value](2plots/dist_value.png){#fig-dist_value}
@@ -195,7 +221,7 @@ Viewing the density plot of `rel_w_av` (see @fig-dist_value) and the boxplot of 
 
 
 
-## Analysis of pos_group
+### Analysis of pos_group
 
 An important factor variable to consider in the exploration is position group (`pos_group` in tibble). Although `rel_w_av` attempts to determine how valuable a player is independent of position, each player in football performs a completely different role (unlike, say, baseball) and is evaluated on completely different criteria. 
 
@@ -211,8 +237,11 @@ From @fig-pg-density, we can clearly see the distribution of expected value by `
 
 Furthermore, @fig-pg-value demonstrates that dropoffs in value by round differ by `pos_group`. For example, there is a sharp dropoff in value after the first two rounds for quarterbacks, whereas offensive linemen and defensive backs follow a steady linear decline in value. 
 
+# The EDA Draft
 
-## Round 1: Does being good at drafting matter?
+## Round 1: The Main Event 
+**Does drafting well actually matter?**
+
 Yes.
 ```{r}
 draft |> 
@@ -253,6 +282,23 @@ draft |>
 
 ```
 
+## Round 2: Age Takes the Stage
+**What patterns can we find with player age when drafted and performance?**
+
+## Round 3: Tall Task
+**Are there biases with height and weight, or are they uncorrelated?**
+
+## Round 4: Coaching Correlations
+**How does draft pick success relate to NFL Head Coach regime success/failure?**
+
+## Round 5: Hometown Heroes
+**Are “hometown” picks (when team drafts from nearby colleges) more likely than others? More successful than others?**
+
+## Round 6: Alma Mater Analysis
+**What is the relationship between college conference/other college groupings and draft pick success rate?**
+
+## *Round 7: Who the H*** Is Mel Kiper?*
+**How do draft picks that deviate from media “consensus” behave when they are either a “reach” (against media consensus) or a “steal” (agree with media consensus)?**
 
 
 
