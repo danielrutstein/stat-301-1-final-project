@@ -512,13 +512,14 @@ for (i in 1:length(rc_years)) {
   )
 }
 
-for (i in seq_along(class_yr)) {
+for (i in 1:length(class_yr)) {
   rc_cycle_value = if_else(
-    class_yr[[i]] < 2018,
+    (class_yr[[i]] < 2018),
     class_value[[i]] + class_value[[i+1]] + class_value[[i+2]] + class_value[[i+3]],
     rc_cycle_value
   )
 }
+
 
 draft_class <- tibble(draft_class, rc_cycle_value)
 
@@ -529,38 +530,7 @@ draft_class |>
 
 
 
-for (i in years){
-  if (i > 2013){
-    draft |>
-      filter(year <= i & year >= i - 3)
-      group_by(team) |>
-      summarize(
-        class_value = sum(rel_w_av),
-      )
-  } else {
-    draft |>
-    group_by(team) |>
-      summarize(
-        class_value = 0,
-      )
-  }
-}
 
-if_else(year > 2013,
-  draft |>
-    filter(year <= 2014)
-  group_by(team) |>
-    summarize(
-      class_value = sum(rel_w_av),
-    )
-} else {
-  draft |>
-    group_by(team) |>
-    summarize(
-      class_value = 0,
-    )
-}
-}
 
 
 # Round 2: Age Exploration ----
@@ -1557,7 +1527,38 @@ draft |>
 
 
 
+for (i in years){
+  if (i > 2013){
+    draft |>
+      filter(year <= i & year >= i - 3)
+    group_by(team) |>
+      summarize(
+        class_value = sum(rel_w_av),
+      )
+  } else {
+    draft |>
+      group_by(team) |>
+      summarize(
+        class_value = 0,
+      )
+  }
+}
 
+if_else(year > 2013,
+        draft |>
+          filter(year <= 2014)
+        group_by(team) |>
+          summarize(
+            class_value = sum(rel_w_av),
+          )
+        } else {
+          draft |>
+            group_by(team) |>
+            summarize(
+              class_value = 0,
+            )
+        }
+}
 
 
 
