@@ -492,14 +492,15 @@ draft |>
   ) 
 
 ## Playoffs & Super Bowls ----
-# does the rookie contract players correlate w/ super bowl wins
+# does the strength of the rookie contract cycle correlate w/ super bowl wins
+# need to extract rookie contract cycle value from data
 draft_class <- draft |> 
   group_by(year, team) |>
   summarize(
     rel_value = sum(rel_pick_av)
   ) |> arrange(team)
 
-rc_years <- c(2011,2012,2013,2014,2015, 2016, 2027)
+rc_years <- c(2011,2012,2013,2014,2015,2016,2017)
 class_value <- draft_class$rel_value
 class_yr <- draft_class$year
 rc_cycle_value <- vector(length = length(class_value))
@@ -507,32 +508,22 @@ for (i in 1:length(rc_years)) {
   rc_cycle_value = if_else(
     (rc_years[[i]] + 3) == class_yr,
     class_value[[i]] + class_value[[i+1]] + class_value[[i+2]] + class_value[[i+3]],
-    NA
+    rc_cycle_value
   )
 }
 
-
-years <- c(2011,2012,2013,2014,2015,2016,2017,2018, 2019, 2020)
-  
-
-rookie_contract <- function(df, x) {
-  filter(x )
-  group_by(team) |>
-    summarize(
-      rookie_contracts = sum(rel_w_av),
-    ) 
+for (i in seq_along(class_yr)) {
+  rc_cycle_value = if_else(
+    class_yr[[i]] < 2018,
+    class_value[[i]] + class_value[[i+1]] + class_value[[i+2]] + class_value[[i+3]],
+    rc_cycle_value
+  )
 }
 
-rookie_contracts <- NULL
-draft |>
-  filter(year <= 2014 & year >= 2011) |>
-  summarize(
-    rc_value = sum(rel_pick_av),
-    playoff_wins = mean(post_win),
-    .by = team
-  ) |> ggplot(aes(x = rc_value, y = playoff_wins)) +
-  geom_point()
+draft_class <- tibble(draft_class, rc_cycle_value)
 
+draft_class |>
+  arrange(desc(rc_cycle_value))
 
 
 
@@ -1528,16 +1519,23 @@ class_value <- funciton (x, var) {
 
 college_st = str_replace_all(college_st, ".*Florida.*", "Florida")
 
-for (i in state.name) {
-  
+rookie_contract <- function(df, x) {
+  filter(x )
+  group_by(team) |>
+    summarize(
+      rookie_contracts = sum(rel_w_av),
+    ) 
 }
 
-
-college_st
-
-
-
-}
+rookie_contracts <- NULL
+draft |>
+  filter(year <= 2014 & year >= 2011) |>
+  summarize(
+    rc_value = sum(rel_pick_av),
+    playoff_wins = mean(post_win),
+    .by = team
+  ) |> ggplot(aes(x = rc_value, y = playoff_wins)) +
+  geom_point()
 
 
 
