@@ -87,7 +87,7 @@ This is the link to my main database, which is a compilation of 10 NFL Draft Cla
 *How do draft picks that deviate from media “consensus” behave when they are either a “reach” (against media consensus) or a “steal” (agree with media consensus?*
 
 
-# Building the Draft Class: Setting up the `draft` database
+## Building the Draft Class: Setting up the `draft` database
 ### Adding Complexity to Dataset
 After submitting progress memo #1, my greatest concern was not having enough "meat on the bone", per sé, to perform a complex enough EDA. Thus, I found two new datasets to join to my original draft profiles, adding 21 new variables to work with.
 
@@ -153,7 +153,7 @@ draft <- draft |>
 
 ```
 
-# Pre-Draft Scouting: A Univariate Analysis of the NFL Draft
+## Pre-Draft Scouting: A Univariate Analysis of the NFL Draft
 ### Finding the Base Variable
 To lay the foundation of my EDA, I need to answer a simple yet ambiguous question: for the purposes of the project, which variable best approximates player success? The two candidates are `w_av`, which is Football Reference's weighted career value for each player in the dataset across position, and `dr_av`, which uses the same formula, but omits any accumulated career value after leaving the team that drafted them. The pros of each are 
 
@@ -237,9 +237,9 @@ From @fig-pg-density, we can clearly see the distribution of expected value by `
 
 Furthermore, @fig-pg-value demonstrates that dropoffs in value by round differ by `pos_group`. For example, there is a sharp dropoff in value after the first two rounds for quarterbacks, whereas offensive linemen and defensive backs follow a steady linear decline in value. 
 
-# The EDA Draft
+## The EDA Draft
 
-## Round 1: The Main Event 
+### Round 1: The Main Event 
 **Does drafting well actually matter?**
 
 Yes.
@@ -282,22 +282,22 @@ draft |>
 
 ```
 
-## Round 2: Age Takes the Stage
+### Round 2: Age Takes the Stage
 **What patterns can we find with player age when drafted and performance?**
 
-## Round 3: Tall Task
+### Round 3: Tall Task
 **Are there biases with height and weight, or are they uncorrelated?**
 
-## Round 4: Coaching Correlations
+### Round 4: Coaching Correlations
 **How does draft pick success relate to NFL Head Coach regime success/failure?**
 
-## Round 5: Hometown Heroes
+### Round 5: Hometown Heroes
 **Are “hometown” picks (when team drafts from nearby colleges) more likely than others? More successful than others?**
 
-## Round 6: Alma Mater Analysis
+### Round 6: Alma Mater Analysis
 **What is the relationship between college conference/other college groupings and draft pick success rate?**
 
-## *Round 7: Who the H*** Is Mel Kiper?*
+### *Round 7: Who the H*** Is Mel Kiper?*
 **How do draft picks that deviate from media “consensus” behave when they are either a “reach” (against media consensus) or a “steal” (agree with media consensus)?**
 
 
