@@ -932,7 +932,20 @@ draft_geo_r |>
   ggplot(aes(x = round, fill = region_match)) +
   geom_bar()
 
-#how do hometown picks perform?
+draft_geo_r |>
+  ggplot(aes(x = rel_pick_av, color = region_match)) +
+  geom_density() +
+  facet_wrap(~round)
+
+draft_geo_r |>
+  filter(region_match == TRUE) |>
+  ggplot(aes(x = team)) +
+  geom_bar(aes(color = region_match, fill = team), width = 0.5) +
+  scale_color_nfl(type = "secondary") +
+  scale_fill_nfl(alpha = 0.4)
+
+
+#but some areas of the country produce more draft prospects than others, so we must adjust for the strength of the region the team plays in
 region_freq <- draft_geo_r |>
   summarize(
     match_pct = n()/nrow(draft_geo_r),
@@ -942,30 +955,64 @@ region_freq <- draft_geo_r |>
 exp_match_pct <- draft_geo_r$team_region
 v_college_region <- region_freq$college_region
 v_match_pct <- as.character(region_freq$match_pct)
-for(i in seq_along(region_freq)) {
+for(i in seq_along(v_college_region)) {
     exp_match_pct = str_replace_all(
       exp_match_pct, 
-      college_region[[i]], 
-      match_pct[[i]]
+      v_college_region[[i]], 
+      v_match_pct[[i]]
     )
 }
+draft_geo_r <- tibble(draft_geo_r, exp_match_pct)
 
-  group_by(team, team_region, region_match) |>
+# hometown bias as % drafted from local region - % of players in draft pool from local region
+hometown_bias <- draft_geo_r |>
+  group_by(team) |>
   summarize(
-    pct_match = n()/nrow(draft_geo_r)
-  ) 
-  
+    matches = sum(region_match == TRUE),
+    match_pct = matches/n(),
+    mean_match_pct = mean(as.double(exp_match_pct)),
+    rel_match_pct = match_pct - mean_match_pct,
+    rel_value = mean(rel_pick_av),
+    rel_ht_pick_av = sum(if_else(region_match == TRUE, rel_pick_av, 0))/matches
+  ) |> arrange(desc(rel_match_pct))
 
-draft_geo_r |>
-  filter(region_match == TRUE) |>
+#there is a slight hometown bias
+hometown_bias |>
   summarize(
-    
+    mean = mean(rel_match_pct),
+    median = median(rel_match_pct),
+    sd = sd(rel_match_pct)
   )
-  ggplot(aes(x = team)) +
-  geom_bar(aes(color = region_match, fill = team), width = 0.5) +
-  scale_color_nfl(type = "secondary") +
-  scale_fill_nfl(alpha = 0.4)
-  
+
+#on aggregate
+hometown_bias |>
+  filter(matches >= quantile(matches, 0.25)) |>
+  ggplot(aes(x = rel_match_pct, y = rel_value)) +
+  geom_smooth(method = "lm", formula = y~x, alpha = 0.3, color = "grey75") +
+  geom_mean_lines(aes(x0 = mean(rel_match_pct), y0 = 0)) +
+  geom_nfl_logos(aes(team_abbr = team), width = 0.065, alpha = 0.7) +
+  labs(
+    x = "hometown bias",
+    y = "average draft pick value over expectation",
+    caption = "Data: ESPN, Sports Reference",
+    title = "Mapping of relationship between agreement with ESPN and draft success"
+  ) 
+
+hometown_bias |>
+  filter(matches >= quantile(matches, 0.25)) |>
+  ggplot(aes(x = rel_match_pct, y = rel_ht_pick_av)) +
+  geom_smooth(method = "lm", formula = y~x, alpha = 0.3, color = "grey75") +
+  geom_mean_lines(aes(x0 = mean(rel_match_pct), y0 = 0)) +
+  geom_nfl_logos(aes(team_abbr = team), width = 0.065, alpha = 0.7) +
+  labs(
+    x = "hometown bias",
+    y = "average hometown pick value over expectation",
+    caption = "Data: ESPN, Sports Reference",
+    title = "Mapping of relationship between agreement with ESPN and draft success"
+  ) 
+# variance pattern reverse of expected since less hometown bias means smaller sample size
+
+
 
 # Looks like they don't become superstars. Let's check that.
 draft_geo_r |>
