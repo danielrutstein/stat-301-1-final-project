@@ -1202,13 +1202,29 @@ draft_espn |>
 # What about teams that ESPN consensus "likes" and "doesn't like", how do they fare?
 draft_espn |> 
   summarize(
-    consensus_rating = sum(w_diff)/n() + mean(w_diff),
+    consensus_rating = sum(w_diff)/n(),
     avg_value = sum(rel_pick_av, na.rm = TRUE)/n(),
     .by = team
   ) |> ggplot(aes(x = consensus_rating, y = avg_value)) +
   geom_smooth(method = "lm", formula = y~x, alpha = 0.3, color = "grey75") +
-  geom_mean_lines(aes(x0 = median(consensus_rating), y0 = 0)) +
+  geom_mean_lines(aes(x0 = mean(consensus_rating), y0 = 0)) +
   geom_nfl_logos(aes(team_abbr = team), width = 0.065, alpha = 0.7) +
+  labs(
+    x = "Agreement with ESPN",
+    y = "average draft pick value over expectation",
+    caption = "Data: ESPN, Sports Reference",
+    title = "Mapping of relationship between agreement with ESPN and draft success"
+  ) 
+
+draft_espn |> 
+  group_by(year, team) |>
+  summarize(
+    consensus_rating = sum(w_diff)/n(),
+    avg_value = sum(rel_pick_av, na.rm = TRUE)/n()
+  ) |> ggplot(aes(x = consensus_rating, y = avg_value)) +
+  geom_point() +
+  geom_smooth(method = "lm", formula = y~x, alpha = 0.3, color = "grey75") +
+  geom_nfl_logos(aes(team_abbr = team), width = 0.005, alpha = 0.7) +
   labs(
     x = "Agreement with ESPN",
     y = "average draft pick value over expectation",
