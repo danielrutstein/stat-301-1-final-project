@@ -446,9 +446,9 @@ draft |>
   group_by(team, year) |>
   summarize(
     avg_value = sum(rel_pick_av, na.rm = TRUE),
-    games_won = mean(win)+(mean(tie)/2)
-  ) |> arrange(desc(avg_value))|> ggplot(aes(x = avg_value, y = games_won)) +
-  geom_point() +
+    games_won = mean(win)
+  ) |> arrange(desc(avg_value))|> ggplot(aes(x = games_won, y = avg_value)) +
+  geom_boxplot(aes(group = cut_width(games_won, 1))) +
   labs(
     x = "average draft pick value",
     y = "wins",
@@ -485,7 +485,7 @@ draft |>
   geom_mean_lines(aes(x0 = 0, y0 = .5)) +
   geom_nfl_logos(aes(team_abbr = team), width = 0.065, alpha = 0.7) +
   labs(
-    x = "average draft pick value vs expectation",
+    x = "average draft pick value over expectation",
     y = "win percentage",
     caption = "Data: Sports Reference",
     title = "Mapping of relationship between draft success and team success"
