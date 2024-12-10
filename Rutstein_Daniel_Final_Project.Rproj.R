@@ -1173,10 +1173,48 @@ draft_espn |>
   geom_point(alpha = 0.3)
 
 draft_espn |>
-  mutate(espn_likes = if_else(w_diff >= 0, "ESPN", "NFL")) |> 
+  mutate(espn_likes = if_else(w_diff >= median(w_diff), "ESPN", "NFL")) |> 
   ggplot(aes(x = rel_w_av, color = espn_likes, fill = espn_likes)) +
   geom_density(alpha = 0.3) +
   facet_wrap(~pos_group)
+
+# But is this really accounting for our question? We only want strong differences.
+draft_espn |>
+  mutate(
+    strong_preference = if_else(
+      w_diff >= quantile(w_diff, .9), "ESPN",
+      if_else(w_diff <= quantile(w_diff, .1), "NFL", "Neutral"))
+  ) |> 
+  ggplot(aes(x = rel_pick_av, color = strong_preference, fill = strong_preference)) +
+  geom_density(alpha = 0.3) +
+  facet_wrap(~pos_group)
+
+draft_espn |>
+  mutate(
+    strong_preference = if_else(
+      w_diff >= quantile(w_diff, .9), "ESPN",
+      if_else(w_diff <= quantile(w_diff, .1), "NFL", "Neutral"))
+  ) |>  
+  ggplot(aes(x = strong_preference, y = rel_pick_av)) +
+  geom_boxplot() +
+  facet_wrap(~pos_group)
+
+# What about teams that ESPN consensus "likes" and "doesn't like", how do they fare?
+draft_espn |> 
+  summarize(
+    consensus_rating = sum(w_diff)/n() + mean(w_diff),
+    avg_value = sum(rel_pick_av, na.rm = TRUE)/n(),
+    .by = team
+  ) |> ggplot(aes(x = consensus_rating, y = avg_value)) +
+  geom_smooth(method = "lm", formula = y~x, alpha = 0.3, color = "grey75") +
+  geom_mean_lines(aes(x0 = median(consensus_rating), y0 = 0)) +
+  geom_nfl_logos(aes(team_abbr = team), width = 0.065, alpha = 0.7) +
+  labs(
+    x = "Agreement with ESPN",
+    y = "average draft pick value over expectation",
+    caption = "Data: ESPN, Sports Reference",
+    title = "Mapping of relationship between agreement with ESPN and draft success"
+  ) 
   
 
 
