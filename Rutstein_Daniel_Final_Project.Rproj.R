@@ -1134,7 +1134,7 @@ draft |>
   mutate(
     diff_rk = pick - ovr_rk,
     w_diff = (4.263 - 0.7171 * log(ovr_rk)) - (4.263 - 0.7171 * log(pick))
-  ) |> arrange(desc(w_diff)) |> select(player, pick, diff_rk, w_diff)
+  ) |> arrange(w_diff) |> select(player, pick, diff_rk, w_diff)
   
 # ovr_rk appears to be a variable where missing values are significant, let's figure out what the NAs mean
 draft |> 
@@ -1167,7 +1167,15 @@ draft_espn <- draft |>
     w_diff = (4.263 - 0.7171 * log(ovr_rk)) - (4.263 - 0.7171 * log(pick)),
   )
 
-#let's see who's better at scouting
+#let's see distribution
+draft_espn |>
+  ggplot(aes(x = w_diff)) +
+  geom_histogram(bins = 100)
+
+# makes sense since ESPN players can be surpassed by undrafted players in ranking
+# so NFL expectation should be lower than ESPN's leading to a center below 0
+
+#let's see how this shakes out
 draft_espn |>
   ggplot(aes(x = w_diff, y = rel_pick_av)) +
   geom_point(alpha = 0.3)
@@ -1177,6 +1185,12 @@ draft_espn |>
   ggplot(aes(x = rel_w_av, color = espn_likes, fill = espn_likes)) +
   geom_density(alpha = 0.3) +
   facet_wrap(~pos_group)
+
+#qb has a pretty significant difference
+draft_espn |>
+  filter(pos_group == "QB") |>
+  ggplot(aes(x = w_diff, y = rel_pick_av)) +
+  geom_point(alpha = 0.3)
 
 # But is this really accounting for our question? We only want strong differences.
 draft_espn |>
@@ -1210,27 +1224,32 @@ draft_espn |>
   geom_mean_lines(aes(x0 = mean(consensus_rating), y0 = 0)) +
   geom_nfl_logos(aes(team_abbr = team), width = 0.065, alpha = 0.7) +
   labs(
-    x = "Agreement with ESPN",
+    x = "agreement with ESPN",
     y = "average draft pick value over expectation",
     caption = "Data: ESPN, Sports Reference",
     title = "Mapping of relationship between agreement with ESPN and draft success"
   ) 
 
+# seems like teams teams that agree more with consensus do better, good for ESPN!
 draft_espn |> 
-  group_by(year, team) |>
+  group_by(team, year) |>
   summarize(
     consensus_rating = sum(w_diff)/n(),
     avg_value = sum(rel_pick_av, na.rm = TRUE)/n()
   ) |> ggplot(aes(x = consensus_rating, y = avg_value)) +
+  geom_smooth(method = "loess", formula = y~x, alpha = 0.3, color = "grey75") +
+  coord_cartesian(xlim = c(-0.4, 0.2)) +
   geom_point() +
-  geom_smooth(method = "lm", formula = y~x, alpha = 0.3, color = "grey75") +
-  geom_nfl_logos(aes(team_abbr = team), width = 0.005, alpha = 0.7) +
   labs(
-    x = "Agreement with ESPN",
+    x = "agreement with ESPN",
     y = "average draft pick value over expectation",
     caption = "Data: ESPN, Sports Reference",
     title = "Mapping of relationship between agreement with ESPN and draft success"
   ) 
+
+# Appears strong agreement relates with more success, but strong disagreement does not
+# Consensus "steals" more predictive than consensus "reaches"
+
   
 
 
