@@ -499,12 +499,13 @@ draft_class <- draft |>
   summarize(
     rel_value = sum(rel_pick_av),
     wins = mean(win),
-    post_wins = mean(post_win)
+    post = if_else(sum(post_game) > 0, TRUE, FALSE),
+    post_wins = mean(post_win),
+    sb = if_else(sum(!is.na(super_bowl)) > 0, TRUE, FALSE)
   ) |> arrange(team)
 
 class_value <- draft_class$rel_value
-
-rc_cycle_value <- vector(length = length(class_yr))
+rc_cycle_value <- vector(length = length(class_value))
 for (i in seq_along(1:(length(class_value)-3))) {
   rc_cycle_value = if_else(
     class_value[[i]] == class_value,
@@ -524,27 +525,21 @@ draft_cycle |>
   ggplot(aes(x = wins, y = rc_cycle_value)) +
   geom_boxplot(aes(group = cut_width(wins, 1)))
 
+#let's group by NFL season
 draft_cycle |>
-  ggplot(aes(x = wins, y = rc_cycle_value)) +
-  geom_boxplot(aes(group = cut_width(wins, 1)))
-
-draft_cycle |>
-  group_by(team, year) |>
+  mutate(alp = if_else(post == TRUE, 0.8, 0.65)) |>
   ggplot(aes(x = rc_cycle_value, y = wins)) +
   facet_wrap(~year) +
   geom_smooth(method = "lm", formula = y~x, alpha = 0.3, color = "grey75") +
-  geom_mean_lines(aes(x0 = 1, y0 = .5)) +
-  geom_nfl_logos(aes(team_abbr = team), width = 0.01, alpha = 0.7) +
+  geom_mean_lines(aes(x0 = 0, y0 = 8)) +
+  geom_nfl_logos(aes(team_abbr = team, width = 0.065, alpha = alp)) +
   labs(
-    x = "average draft pick value",
-    y = "win percentage",
+    x = "rookie class value over expectation",
+    y = "wins",
     caption = "Data: Sports Reference",
-    title = "Mapping of relationship between draft success and team success"
+    title = "Rookie Contract Class Value over Expectation and Team Wins"
   ) 
-
-
-
-
+ggsave(filename = "rnd_1_cycle_by_season.png")
 
 
 
