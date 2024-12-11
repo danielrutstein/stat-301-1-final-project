@@ -295,26 +295,27 @@ draft_cycle <- draft_class |>
 
 
 ```{r}
-top_10_rc_class <- draft_cycle |>
+top_7_rc_class <- draft_cycle |>
   ungroup(year) |>
   relocate(rc_cycle_value, .after = team) |>
   rename(rc_class_value = rc_cycle_value, draft_class_value = rel_value) |>
   arrange(desc(rc_class_value)) |>
-  slice_head(n = 10)
+  slice_head(n = 7)
   
-  kable(top_10_rc_class, caption = "Top 2 rookie contract classes by   rc_class_value from 2014-2020")
+  kable(top_7_rc_class, caption = "Top 7 rookie contract classes by rc_class_value from 2014-2020")
 ```
 ```{r}
-top_10_rc_class |>
+top_7_rc_stats <- top_7_rc_class |>
   summarize(
     mean_rc_class_value = mean(rc_class_value),
     mean_draft_class_value = mean(draft_class_value),
     mean_wins = mean(wins),
     playoff_pct = sum(post)/n()
-  ) |>
-  kable(caption = "Top 2 rookie contract classes by   rc_class_value from 2014-2020")
+  ) 
+kable(top_7_rc_stats, caption = "Top 7 rookie contract classes success statistics")
 ```
-```
+
+
 
 
 ![Mapping of Relationship between draft success and team success 4](plots/rd1_4_cycle_by_wins.png){#fig-rd1-4}
