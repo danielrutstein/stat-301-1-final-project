@@ -242,45 +242,7 @@ Furthermore, @fig-pg-value demonstrates that dropoffs in value by round differ b
 ### Round 1: The Main Event 
 **Does drafting well actually matter?**
 
-Yes.
-```{r}
-draft |> 
-  summarize(
-    avg_value = sum(rel_w_av, na.rm = TRUE)/n(),
-    win_pct = (mean(win) + (mean(tie)/2))/ 16,
-    .by = team
-  ) |> arrange(desc(avg_value))|> ggplot(aes(x = avg_value, y = win_pct)) +
-  geom_abline(slope = -1, intercept = seq(0.4, -0.3, -0.1), alpha = .2) +
-  geom_mean_lines(aes(x0 = 1, y0 = .5)) +
-  geom_nfl_logos(aes(team_abbr = team), width = 0.065, alpha = 0.7) +
-  labs(
-    x = "average draft pick value",
-    y = "win percentage",
-    caption = "Data: Sports Reference",
-    title = "Mapping of relationship between draft success and team success"
-  ) 
-```
-
-
-```{r}
-
-draft |> 
-  summarize(
-    avg_value = sum(rel_pick_av, na.rm = TRUE)/n(),
-    win_pct = (mean(win) + (mean(tie)/2))/ 16,
-    .by = team
-  ) |> arrange(desc(avg_value))|> ggplot(aes(x = avg_value, y = win_pct)) +
-  geom_abline(slope = -1, intercept = seq(0.4, -0.3, -0.1), alpha = .2) +
-  geom_mean_lines(aes(x0 = 1, y0 = .5)) +
-  geom_nfl_logos(aes(team_abbr = team), width = 0.065, alpha = 0.7) +
-  labs(
-    x = "average draft pick value",
-    y = "win percentage",
-    caption = "Data: Sports Reference",
-    title = "Mapping of relationship between draft success and team success"
-  ) 
-
-```
+![Mapping of Relationship between draft success and team success](plots/rd1_1_wins_by_value.png){#fig-rd1_1}
 
 ### Round 2: Age Takes the Stage
 **What patterns can we find with player age when drafted and performance?**
@@ -297,7 +259,7 @@ draft |>
 ### Round 6: Alma Mater Analysis
 **What is the relationship between college conference/other college groupings and draft pick success rate?**
 
-## *Round 7: Who the H*** Is Mel Kiper?*
+### *Round 7: Who the H*** Is Mel Kiper?*
 **How do draft picks that deviate from media “consensus” behave when they are either a “reach” (against media consensus) or a “steal” (agree with media consensus)?**
 
 
