@@ -397,6 +397,7 @@ draft_age |>
   facet_wrap(~pos_group) +
   labs(
     title = "Distribution of position group value by age", 
+    caption = "Data: Sports Reference",
     x = "age group",
     y = "player value"
   )
@@ -407,7 +408,8 @@ draft_age |>
   geom_boxplot() +
   facet_wrap(~pos_group) +
   labs(
-    title = "Distribution of Position Group Relative Value by Age", 
+    title = "Distribution of position group value (over expectation) by age",
+    caption = "Data: Sports Reference",
     x = "age group",
     y = "player value over expectation"
   )
@@ -436,7 +438,8 @@ draft_age |>
   ggplot(aes(x = age_fct, alpha = honors)) +
   geom_bar()  +
   labs(
-    title = "Visualizing superstar outcomes by age", 
+    title = "Visualizing superstar outcomes by age",
+    caption = "Data: Sports Reference",
     x = "age group",
     y = "players"
   )
@@ -470,7 +473,14 @@ draft_coach <- draft |>
 draft_coach |>
   ggplot(aes(x = as.factor(tenure), y = rel_pick_av)) +
   geom_boxplot() +
-  facet_wrap(~tail_coach) 
+  facet_wrap(~tail_coach)  +
+  labs(
+    title = "Relationship between draft success and tenure, grouped by time cutoffs",
+    caption = "Data: Sports Reference",
+    x = "tenure (years)",
+    y = "average draft pick value (over expectation)"
+  )
+ggsave(filename = "plots/rd3_1_tenure_rel_value.png")
 
 #trends excluding the new hires to reduce variance
 draft_coach |>
@@ -492,7 +502,13 @@ draft_coach |>
     fired = if_else(fired_20 == TRUE | (year == max(year) & !(year == 2020)), TRUE, FALSE)
   ) |> group_by(coach, team, year) |>
   ggplot(aes(x = rel_pick_av, color = fired)) +
-  geom_density()
+  geom_density() +
+  labs(
+    title = "Draft pick success in the draft before a head coach is fired",
+    caption = "Data: Sports Reference",
+    x = "draft pick value (over expectation)"
+  )
+ggsave(filename = "plots/rd3_2_draft_before_fired.png")
 
 # how does first draft go vs expectation
 draft_coach |> 
@@ -500,7 +516,13 @@ draft_coach |>
     hired = if_else(hired_11 == TRUE | (year == min(year) & !(year == 2011)), TRUE, FALSE)
   ) |> group_by(coach, team, year) |>
   ggplot(aes(x = rel_pick_av, color = hired)) +
-  geom_density()
+  geom_density() +
+  labs(
+    title = "Draft pick success in the first draft after a head coach is hired",
+    caption = "Data: Sports Reference",
+    x = "draft pick value (over expectation)"
+  )
+ggsave(filename = "plots/rd3_3_draft_before_fired.png")
 
 
 # Round 4 ----
