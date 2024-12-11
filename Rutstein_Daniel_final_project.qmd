@@ -211,13 +211,10 @@ draft |>
 From @fig-exp_w_av_1120, looks like a logarithmic regression to me. Let's normalize our w_av variable by an exponential approximation to minimize the affect of year possible as much as we can.
 
 ```{r}
-
-
 top10_rel_w_av <- draft |> 
   arrange(desc(rel_w_av)) |>
   select(player, year, rel_w_av)
   kable(slice_head(top10_rel_w_av, n = 10), caption = "Top 10 players by log-adjusted w_av")
-
 ```
 The years appear to be more randomly distributed, so the model seems to fit expected value. We could also divide by mean, but this assumes that expected/average draft class value is the same across every year, which is not necessarily true (there is variance in the strength of each draft class). In conclusion, therefore, `rel_w_av` will be considered our main variable to estimate success of a draft pick in this exploration.
 
@@ -295,31 +292,49 @@ draft_cycle <- draft_class |>
 
 
 ```{r}
-top_7_rc_class <- draft_cycle |>
+
+top_10_rc_class <- draft_cycle |>
   ungroup(year) |>
   relocate(rc_cycle_value, .after = team) |>
   rename(rc_class_value = rc_cycle_value, draft_class_value = rel_value) |>
   arrange(desc(rc_class_value)) |>
-  slice_head(n = 7)
-  
-  kable(top_7_rc_class, caption = "Top 7 rookie contract classes by rc_class_value from 2014-2020")
+  slice_head(n = 10)
 ```
+
 ```{r}
-top_7_rc_stats <- top_7_rc_class |>
+#| label: tbl-rd1-1
+#| tbl-cap: "Top 7 rookie contract classes by rc_class_value from 2014-2020"
+
+kable(top_10_rc_class)
+```
+
+```{r}
+top_10_rc_stats <- top_10_rc_class |>
   summarize(
     mean_rc_class_value = mean(rc_class_value),
     mean_draft_class_value = mean(draft_class_value),
     mean_wins = mean(wins),
     playoff_pct = sum(post)/n()
   ) 
-kable(top_7_rc_stats, caption = "Top 7 rookie contract classes success statistics")
 ```
 
+```{r}
+#| label: tbl-rd1-2
+#| tbl-cap: "Summary Statistics, Top 10 rookie contract classes"
 
-
+kable(top_10_rc_stats)
+```
 
 ![Mapping of Relationship between draft success and team success 4](plots/rd1_4_cycle_by_wins.png){#fig-rd1-4}
 ![Rookie contract class value (over expectation) and team wins](plots/rd1_5_cycle_by_season.png){#fig-rd1-5}
+```{r}
+r_14_20 <- draft_cycle |>
+  summarize(
+    R = cor(wins, rc_cycle_value)
+  )
+kable(r_14_20, caption = "correlation coefficient by year")
+```
+
 ![Rookie contract class value (over expectation) and team wins](plots/rd1_6_sb_boolean.png){#fig-rd1-6}
 ![Rookie contract class value (over expectation) and team wins](plots/rd1_7_sb_cycle.png){#fig-rd1-7}
 
