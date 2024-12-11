@@ -296,11 +296,24 @@ draft_cycle <- draft_class |>
 
 ```{r}
 top_10_rc_class <- draft_cycle |>
+  ungroup(year) |>
   relocate(rc_cycle_value, .after = team) |>
   rename(rc_class_value = rc_cycle_value, draft_class_value = rel_value) |>
-  arrange(desc(rc_class_value))
+  arrange(desc(rc_class_value)) |>
+  slice_head(n = 10)
   
-kable(slice_head(top_10_rc_class, n = 10), caption = "Top 10 rookie contract classes by rc_class_value")
+  kable(top_10_rc_class, caption = "Top 2 rookie contract classes by   rc_class_value from 2014-2020")
+```
+```{r}
+top_10_rc_class |>
+  summarize(
+    mean_rc_class_value = mean(rc_class_value),
+    mean_draft_class_value = mean(draft_class_value),
+    mean_wins = mean(wins),
+    playoff_pct = sum(post)/n()
+  ) |>
+  kable(caption = "Top 2 rookie contract classes by   rc_class_value from 2014-2020")
+```
 ```
 
 
