@@ -36,7 +36,9 @@ echo: false
 library(tidyverse)
 library(readxl)
 library(nflplotR)
-library(knitr)
+library(knitr) 
+library(tidymodels)
+
 ```
 
 
@@ -58,7 +60,7 @@ This is the link to my main database, which is a compilation of 10 NFL Draft Cla
 :::
 
 
-# Summary
+# Introduction
 **1) Building the Draft Class: Setting up the `draft` database**
 
 **2) Pre-Draft Scouting: A Univariate Analysis of the NFL Draft**
@@ -95,10 +97,6 @@ The first database was sourced from Kaggle,^[Lichtenstein, Jack. “ESPN NFL Dra
 The second database is a summary of NFL coaches by team from 2011-2020, sourced from Sports Reference in an excel spreadsheet I compiled just like my original dataset.^[“2020 NFL Coaches.” Pro Football Reference. Accessed November 26, 2024. https://www.pro-football-reference.com/years/2020/coaches.htm. ] This dataset not only allows for us to see which coaches are most successful at draft picks, how draft pick success relates to turnover (number of coaches per team over the decade), but also contains inofrmation on wins and losses, playoff success, and Super Bowl wins that will be tremendously useful in exploring relationships between draft success and team success.
 
 ```{r}
-library(tidyverse)
-library(nflplotR)
-library(tidymodels)
-
 # Database setup ---- 
 # run this
 draft_prospects <- read_csv("data/nfl_draft_prospects.csv", guess_max = 13000)|>
@@ -114,14 +112,27 @@ draft <- draft_fbr_11_20 |>
   left_join(coaches_fbr_11_20, join_by(year, team))
 draft <- draft |>
   complete(fill = list(rel_w_av = 0, w_av = 0, dr_av = 0, gp = 0)) 
+
+### Clean/Add Variables
+# ignore relocation for Chargers, Raiders and Rams strings (they're the same team for our purposes)
+# for nflplotR use, change team abbreviations that do not use nflplotR's style to match
 draft <- draft |>
   mutate(
     team = fct_recode(team,
                       "LAC" = "SDG",
                       "LAR" = "STL",
-                      "LVR" = "OAK"
+                      "LV" = "OAK",
+                      "LV" = "LVR",
+                      "KC" = "KAN",
+                      "NE" = "NWE",
+                      "SF" = "SFO",
+                      "GB" = "GNB",
+                      "NO" = "NOR",
+                      "TB" = "TAM"
     )
   ) 
+
+#simplify position groups to standard groupings
 std_pos_order <- c("QB", "RB", "WR", "TE", "OL", "IDL", "EDGE", "LB", "DB", "ST")
 draft <- draft |>
   mutate(
@@ -136,19 +147,24 @@ draft <- draft |>
     ),
     pos_group = fct_relevel(pos_group, std_pos_order)
   )
+
+# add helpful variables
 draft <- draft |>
   mutate(
     career_length = played_to - year, 
-    active = if_else(played_to == 2024, TRUE, FALSE)
+    active = if_else(played_to == 2024, TRUE, FALSE),
+    dr_day = fct_collapse(as.factor(round),
+                          "Day 1" = "1",
+                          "Day 2" = c("2","3"),
+                          "Day 3" = c("4","5", "6", "7")
+    )
   ) 
 
 draft <- draft |>
   mutate(
     log_w_av = (w_av / (2.275 + 7.054 * log(2024 - year))),
     rel_w_av = log_w_av/mean(log_w_av),
-    exp_pick_av = (rel_w_av / (4.263 - 0.7171 * log(pick))),
-    rel_pick_av = exp_pick_av/mean(exp_pick_av),
-    avg_w_av = if_else(career_length > 0, w_av / career_length, 0)
+    rel_pick_av = rel_w_av - (4.263 - 0.7171 * log(pick))
   ) 
 
 ```
@@ -246,6 +262,47 @@ Furthermore, @fig-pg-value demonstrates that dropoffs in value by round differ b
 ![Mapping of Relationship between draft success and team success 2](plots/rd1_2_team_by_rel_value.png){#fig-rd1-2}
 
 ![Mapping of Relationship between draft success and team success 3](plots/rd1_3_wins_by_value.png){#fig-rd1-3}
+
+```{r}
+draft_class <- draft |> 
+  group_by(year, team) |>
+  summarize(
+    rel_value = sum(rel_pick_av),
+    wins = mean(win),
+    post = if_else(sum(post_game) > 0, TRUE, FALSE),
+    post_wins = mean(post_win),
+    sb = if_else(sum(str_detect(super_bowl, "W") == TRUE) > 0, "W", 
+         if_else(sum(str_detect(super_bowl, "L") == TRUE) > 0, "L", "no"))
+    ) |> arrange(team) 
+
+class_value <- draft_class$rel_value
+rc_cycle_value <- vector(length = length(class_value))
+for (i in seq_along(1:(length(class_value)-3))) {
+  rc_cycle_value = if_else(
+    class_value[[i]] == class_value,
+    class_value[[i]] + class_value[[i+1]] + class_value[[i+2]] + class_value[[i+3]],
+    rc_cycle_value
+  )
+}
+year <- draft_class$year + 3
+team <- draft_class$team
+rc_cycle <- tibble(team, year, rc_cycle_value)
+
+draft_cycle <- draft_class |>
+  right_join(rc_cycle, join_by(team == team, year == year)) |>
+  filter(year <= 2020)
+```
+
+
+```{r}
+top_10_rc_class <- draft_cycle |>
+  relocate(rc_cycle_value, .after = team) |>
+  rename(rc_class_value = rc_cycle_value, draft_class_value = rel_value) |>
+  arrange(desc(rc_class_value))
+  
+kable(slice_head(top_10_rc_class, n = 10), caption = "Top 10 rookie contract classes by rc_class_value")
+```
+
 
 ![Mapping of Relationship between draft success and team success 4](plots/rd1_4_cycle_by_wins.png){#fig-rd1-4}
 ![Rookie contract class value (over expectation) and team wins](plots/rd1_5_cycle_by_season.png){#fig-rd1-5}
