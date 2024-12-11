@@ -16,28 +16,7 @@ draft <- draft_fbr_11_20 |>
   left_join(coaches_fbr_11_20, join_by(year, team))
 draft <- draft |>
   complete(fill = list(rel_w_av = 0, w_av = 0, dr_av = 0, gp = 0)) 
-draft <- draft |>
-  mutate(
-    team = fct_recode(team,
-                      "LAC" = "SDG",
-                      "LAR" = "STL",
-                      "LVR" = "OAK"
-    )
-  ) 
-std_pos_order <- c("QB", "RB", "WR", "TE", "OL", "IDL", "EDGE", "LB", "DB", "ST")
-draft <- draft |>
-  mutate(
-    pos_group = fct_collapse(pos,
-                             "RB" = c("RB", "FB"),
-                             "OL" = c("C", "G", "T", "OL"),
-                             "IDL" = c("DL", "DT", "NT"),
-                             "EDGE" = c("DE", "OLB"),
-                             "LB" = c("ILB", "LB"),
-                             "DB" = c("DB", "CB","S"),
-                             "ST" = c("K", "LS", "P")
-    ),
-    pos_group = fct_relevel(pos_group, std_pos_order)
-  )
+
 draft <- draft |>
   mutate(
     career_length = played_to - year, 
@@ -76,12 +55,20 @@ draft <- draft |>
 
 ### Clean/Add Variables
 # ignore relocation for Chargers, Raiders and Rams strings (they're the same team for our purposes)
+# for nflplotR use, change team abbreviations that do not use nflplotR's style to match
 draft <- draft |>
   mutate(
     team = fct_recode(team,
                       "LAC" = "SDG",
                       "LAR" = "STL",
-                      "LVR" = "OAK"
+                      "LV" = "OAK",
+                      "LV" = "LVR",
+                      "KC" = "KAN",
+                      "NE" = "NWE",
+                      "SF" = "SFO",
+                      "GB" = "GNB",
+                      "NO" = "NOR",
+                      "TB" = "TAM"
     )
   ) 
 
@@ -161,7 +148,9 @@ draft <- draft |>
     team = fct_recode(team,
                       "LAC" = "SDG",
                       "LAR" = "STL",
-                      "LVR" = "OAK"
+                      "LVR" = "OAK",
+                      "KC" = "KAN",
+                      "NWE" = "NE"
     )
   ) 
 std_pos_order <- c("QB", "RB", "WR", "TE", "OL", "IDL", "EDGE", "LB", "DB", "ST")
@@ -326,7 +315,7 @@ draft <- draft |>
     log_w_av = (w_av / (2.275 + 7.054 * log(2024 - year))),
     rel_w_av = log_w_av/mean(log_w_av),
     avg_w_av = if_else(career_length > 0, w_av / career_length, 0)
-  ) 
+  ) |> arrange(desc(rel_w_av))
 
 draft |>
   group_by(pick) |>
@@ -344,7 +333,7 @@ draft |>
 draft <- draft |>
   mutate(
     rel_pick_av = rel_w_av - (4.263 - 0.7171 * log(pick))
-  ) 
+  )  |> arrange(desc(rel_pick_av))
 
 
 draft |> 
@@ -490,6 +479,8 @@ draft |>
     caption = "Data: Sports Reference",
     title = "Mapping of relationship between draft success and team success"
   ) 
+ggsave(filename = "plots/rnd_1_cycle_by_wins.png")
+
 
 ## Playoffs & Super Bowls ----
 # does the strength of the rookie contract cycle correlate w/ super bowl wins
@@ -501,8 +492,9 @@ draft_class <- draft |>
     wins = mean(win),
     post = if_else(sum(post_game) > 0, TRUE, FALSE),
     post_wins = mean(post_win),
-    sb = if_else(sum(!is.na(super_bowl)) > 0, TRUE, FALSE)
-  ) |> arrange(team)
+    sb = if_else(sum(str_detect(super_bowl, "W") == TRUE) > 0, "W", 
+         if_else(sum(str_detect(super_bowl, "L") == TRUE) > 0, "L", "no"))
+    ) |> arrange(team) 
 
 class_value <- draft_class$rel_value
 rc_cycle_value <- vector(length = length(class_value))
@@ -519,32 +511,65 @@ rc_cycle <- tibble(team, year, rc_cycle_value)
 
 draft_cycle <- draft_class |>
   right_join(rc_cycle, join_by(team == team, year == year)) |>
-  filter(year <= 2020)
+  filter(year <= 2020) |>
+  mutate(rc_cycle_value = rc_cycle_value/max(rc_cycle_value))
 
 draft_cycle |>
   ggplot(aes(x = wins, y = rc_cycle_value)) +
-  geom_boxplot(aes(group = cut_width(wins, 1)))
+  geom_boxplot(aes(group = cut_width(wins, 1)))  +
+  scale_x_continuous(n.breaks = 12)
+  labs(
+    x = "wins",
+    y = "rookie class value over expectation",
+    caption = "Data: Sports Reference",
+    title = "Rookie Contract Class Value (over expectation) and Team Wins"
+  ) 
+  ggsave(filename = "plots/rnd_1_cycle_by_wins.png")
 
 #let's group by NFL season
 draft_cycle |>
-  mutate(alp = if_else(post == TRUE, 0.8, 0.65)) |>
   ggplot(aes(x = rc_cycle_value, y = wins)) +
   facet_wrap(~year) +
   geom_smooth(method = "lm", formula = y~x, alpha = 0.3, color = "grey75") +
   geom_mean_lines(aes(x0 = 0, y0 = 8)) +
-  geom_nfl_logos(aes(team_abbr = team, width = 0.065, alpha = alp)) +
+  geom_nfl_logos(aes(team_abbr = team, width = 0.065)) +
   labs(
     x = "rookie class value over expectation",
     y = "wins",
     caption = "Data: Sports Reference",
-    title = "Rookie Contract Class Value over Expectation and Team Wins"
+    title = "Rookie Contract Class Value (over expectation) and Team Wins"
   ) 
-ggsave(filename = "rnd_1_cycle_by_season.png")
+ggsave(filename = "plots/rnd_1_cycle_by_season.png")
 
+#what about for winning or making a Super Bowl?
+draft_cycle |>
+  mutate(sb_team = if_else(!(is.na(sb)), "Yes", "No")) |>
+  ggplot(aes(x = fct_reorder(sb_team, -rc_cycle_value), y = rc_cycle_value)) +
+  geom_boxplot() +
+  labs(
+    x = "Super Bowl Team?",
+    y = "rookie class value over expectation",
+    caption = "Data: Sports Reference",
+    title = "Rookie Contract Class Value (over expectation) in Super Bowl Teams"
+  ) 
+ggsave(filename = "plots/rnd_1_sb_boolean.png")
 
-
-
-
+draft_cycle |>
+  filter(!(sb == "no")) |>
+  ggplot(aes(x = fct_reorder(team, -rc_cycle_value), y = rc_cycle_value)) +
+  geom_col(aes(color = team, fill = if_else(sb == "W", team, "grey"), width = 0.5)) +
+  facet_wrap(~year, scales = "free_x") +
+  geom_hline(aes(yintercept = 0))+
+  scale_color_nfl(type = "secondary") +
+  scale_fill_nfl() +
+  theme(axis.text.x=element_nfl_logo(size = 1))  +
+  labs(
+    x = "team",
+    y = "rookie class value over expectation",
+    caption = "Data: Sports Reference",
+    title = "Rookie Contract Class Value (over expectation) in Super Bowl Teams"
+  ) 
+ggsave(filename = "plots/rnd_1_sb_cycle.png")
 
 # Round 2: Age Exploration ----
 draft_age <- draft |>
