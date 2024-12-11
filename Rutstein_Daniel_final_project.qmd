@@ -70,11 +70,11 @@ This is the link to my main database, which is a compilation of 10 NFL Draft Cla
 **Round 1: The Main Event**\
 *Does drafting well actually matter?*
 
-**Round 2: Age Takes the Stage**\
-*What patterns can we find with player age when drafted and performance?* 
+**Round 2: Postseason Potency**\
+*How does draft success relate to the ultimate goal of every NFL team: winning a Super Bowl?*
 
-**Round 3: Tall Task**\
-*Are there biases with height and weight, or are they uncorrelated?*
+**Round 3: Age Takes the Stage**\
+*What patterns can we find with player age when drafted and performance?* 
 
 **Round 4: Coaching Correlations**\
 *How does draft pick success relate to NFL Head Coach regime success/failure?*
@@ -345,23 +345,41 @@ kable(top_10_rc_stats)
 Grouping all rookie *contract* classes by regular season wins, the positive correlation of draft value and wining looks considerably stronger relative to rookie class in figure 8.
 
 ![Mapping of Relationship between draft success and team success 4](plots/rd1_4_cycle_by_wins.png){#fig-rd1-4}
-![Rookie contract class value (over expectation) and team wins](plots/rd1_5_cycle_by_season.png){#fig-rd1-5}
+
+### Round 2: Postseason Potency
+**How does draft success relate to the ultimate goal of every NFL team: winning a Super Bowl?**/
+While regular season wins may be a more reliable predictor of team success, given its larger sample size, the true objective of any NFL team is to win a Super Bowl. Thus, we can expand our exploration of rookie contract class from Round 1 to consider its direct relation with NFL Postseason and Super Bowl results.  While we only have seven seasons in our rookie contract class sample, we can consider other factors such as making the playoffs, winning a playoff game, and making the Super Bowl to expand our observations from the seven Super Bowl winners in that time period.
+
+Let's begin by evaluating the baseline requirement to win a Super Bowl: making the playoffs. In Figure 1, we can see the differences between the teams that made the playoffs (opaue) and those that missed (transparent) in rookie class value over expectation.
+![Rookie contract class value (over expectation) and team wins](plots/rd2_1_cycle_by_season.png){#fig-rd2-1}
 ```{r}
 r_14_20 <- draft_cycle |>
   summarize(
-    R = cor(wins, rc_cycle_value)
+    plus_playoff_classes = sum(post == TRUE & rc_cycle_value > 0),
+    R_winning = cor(wins, rc_cycle_value)
   )
-kable(r_14_20, caption = "correlation coefficient by year")
 ```
 
-![Rookie contract class value (over expectation) and team wins](plots/rd1_6_sb_boolean.png){#fig-rd1-6}
-![Rookie contract class value (over expectation) and team wins](plots/rd1_7_sb_cycle.png){#fig-rd1-7}
+```{r}
+#| label: tbl-rd2-1
+#| tbl-cap: "Summary Statistics, Rookie contract class value as playoff predictor"
 
-### Round 2: Age Takes the Stage
-**What patterns can we find with player age when drafted and performance?**
+kable(r_14_20)
+```
 
-### Round 3: Tall Task
-**Are there biases with height and weight, or are they uncorrelated?**
+It is evident that positively correlated with both wins and playoff status (made/missed). In every year, there were more than 6 playoff teams (of 12) with a positive rookie contract class (better than the cumulative expectation of draft picks used in the four-year period) and there is a (moderately) positive linear correlation between wins. This should be expected since wins and playoff status are inherently correlated: teams make or miss the postseason depending on wins, even though other factors (division winners, tiebreakers, etc.) can come into play. 
+
+Within playoff status, we can further bucket teams into those that advanced to the Super Bowl and those that did not:
+![Rookie contract class value (over expectation) and team wins](plots/rd2_2_sb_boolean.png){#fig-rd2-2}
+From this visualization, we can see that Super Bowl teams have even stronger expected rookie contract classes. To be the "best of the best", a team needs to have a competitive advantage everywhere they can, and as we described, their rookie contract class likely bolstered their journey to the big game.'
+
+
+Although the sample size is small, we will finalize Round 2 by exploring the relationship between roookie contract value and winning the Super Bowl. A significant takeaway is that 12 of 14 Super Bowl teams from 2014-2020 had an above expected rookie contract class, and the two negative classes were only slightly below expectation. 
+![Rookie contract class value (over expectation) and team wins](plots/rd2_3_sb_cycle.png){#fig-rd2-3}
+A surprising finding is that 4 of the 7 winners had a lower rookie contract class value than their opponent. While this is not what we would expect, the sample size is quite small at n = 7. Furthermore, the Super Bowl result itself is very high variance, as teams that qualify for the game are the 2 most successful teams of 32, and thus typically evenly matched.
+
+### Round 3: Age Takes the Stage
+**What patterns can we find with player age when drafted and performance? **
 
 ### Round 4: Coaching Correlations
 **How does draft pick success relate to NFL Head Coach regime success/failure?**
