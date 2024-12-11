@@ -173,16 +173,31 @@ draft |>
     .by = team
   ) |> ggplot(aes(x = avg_value, y = win_pct)) +
   geom_smooth(method = "lm", formula = y~x, alpha = 0.3, color = "grey75") +
-  geom_mean_lines(aes(x0 = 1, y0 = .5)) +
+  geom_hline(yintercept = 0.5, lty=2) +
+  geom_vline(xintercept = 1, lty=2) +
   geom_nfl_logos(aes(team_abbr = team), width = 0.065, alpha = 0.7) +
   labs(
     x = "average draft pick value",
     y = "win percentage",
     caption = "Data: Sports Reference",
-    title = "Mapping of relationship between draft success and team success"
+    title = "Mapping of relationship between draft success and team success",
+    subtitle = "R = 0.302"
   ) 
 ggsave(filename = "plots/rd1_1_team_by_value.png")
+draft_cor <- draft |> 
+  summarize(
+    avg_value = sum(rel_w_av, na.rm = TRUE)/n(),
+    win_pct = (mean(win) + (mean(tie)/2))/ 16,
+    .by = team
+  ) 
+draft_cor|>
+  summarize(
+    R = cor(avg_value, win_pct)
+  )
 
+draft|>
+  filter(pos_group == "QB") |>
+  arrange(desc(rel_w_av))
 
 draft |> 
   summarize(
@@ -191,29 +206,31 @@ draft |>
     .by = team
   ) |> ggplot(aes(x = avg_value, y = win_pct)) +
   geom_smooth(method = "lm", formula = y~x, alpha = 0.3, color = "grey75") +
-  geom_mean_lines(aes(x0 = 0, y0 = .5)) +
+  geom_hline(yintercept = 0.5, lty=2) +
+  geom_vline(xintercept = 0, lty=2) +
   geom_nfl_logos(aes(team_abbr = team), width = 0.065, alpha = 0.7) +
   labs(
     x = "average draft pick value over expectation",
     y = "win percentage",
     caption = "Data: Sports Reference",
-    title = "Mapping of relationship between draft success (over expectation) and team success"
+    title = "Mapping of relationship between draft success (over expectation) and team success",
+    subtitle = "R = 0.724"
   ) 
 ggsave(filename = "plots/rd1_2_team_by_rel_value.png")
 
 draft |>
   group_by(team, year) |>
   summarize(
-    avg_value = sum(rel_pick_av, na.rm = TRUE)/n(),
+    rookie_value = sum(rel_pick_av, na.rm = TRUE)/n(),
     games_won = mean(win)
-  ) |> arrange(desc(avg_value))|> ggplot(aes(x = games_won, y = avg_value)) +
+  ) |> arrange(desc(rookie_value))|> ggplot(aes(x = games_won, y = rookie_value)) +
   geom_boxplot(aes(group = cut_width(games_won, 1))) +
   scale_x_continuous(n.breaks = 12) +
   labs(
     x = "wins",
-    y = "average draft pick value",
+    y = "rookie class value",
     caption = "Data: Sports Reference",
-    title = "Rookie class value over expectation and team wins"
+    title = "Rookie class value (over expectation) and team wins"
   ) 
 ggsave(filename = "plots/rd1_3_wins_by_value.png")
 
@@ -247,7 +264,10 @@ rc_cycle <- tibble(team, year, rc_cycle_value)
 
 draft_cycle <- draft_class |>
   right_join(rc_cycle, join_by(team == team, year == year)) |>
-  filter(year <= 2020) 
+  filter(year <= 2020)
+
+draft_cycle |>
+  arrange(desc(rc_cycle_value))
 
 draft_cycle |>
   ggplot(aes(x = wins, y = rc_cycle_value)) +
@@ -261,6 +281,8 @@ draft_cycle |>
   ) 
   ggsave(filename = "plots/rd1_4_cycle_by_wins.png")
 
+# Round 2: Postseason Potency ----
+  
 #let's group by NFL season
 draft_cycle |>
   ggplot(aes(x = rc_cycle_value, y = wins)) +
@@ -278,6 +300,11 @@ draft_cycle |>
   ) 
 ggsave(filename = "plots/rd1_5_cycle_by_season.png")
 
+draft_cycle |>
+  summarize(
+    R = cor(wins, rc_cycle_value)
+  )
+
 #what about for winning or making a Super Bowl?
 draft_cycle |>
   mutate(sb_team = if_else(!(is.na(sb)), "Yes", "No")) |>
@@ -293,9 +320,9 @@ ggsave(filename = "plots/rd1_6_sb_boolean.png")
 
 draft_cycle |>
   filter(!(sb == "no")) |>
-  mutate(sb_winner = if_else(sb == "W", TRUE, FALSE)) |>
+  mutate(winner = if_else(sb == "W", TRUE, FALSE)) |>
   ggplot(aes(x = fct_reorder(team, -rc_cycle_value), y = rc_cycle_value)) +
-  geom_col(aes(color = team, fill = team, width = 0.5, alpha = sb_winner)) +
+  geom_col(aes(color = team, fill = team, width = 0.5, alpha = winner)) +
   facet_wrap(~year, scales = "free_x") +
   geom_hline(aes(yintercept = 0))+
   scale_color_nfl(type = "secondary") +
@@ -310,7 +337,7 @@ draft_cycle |>
   ) 
 ggsave(filename = "plots/rd1_7_sb_cycle.png")
 
-# Round 2: Age Exploration ----
+# Round 3: Age Exploration ----
 draft_age <- draft |>
 filter(!is.na(age)) |>
 mutate(
@@ -449,7 +476,7 @@ draft_age |>
 ggsave(filename = "plots/rd2_6_superstar_by_age.png")
 
 
-# Round 3: Coaches ----
+# Round 4: Coaches ----
 #setup
 fired_2020 <- c("Dan Quinn", "Matt Patricia", "Bill O'Brien", "Doug Marrone", "Doug Pederson", "Anthony Lynn", "Adam Gase")
 fired_team <- c("ATL", "DET", "HOU", "JAX", "PHI", "LAC", "NYJ")
@@ -528,7 +555,7 @@ draft_coach |>
 ggsave(filename = "plots/rd3_3_draft_before_fired.png")
 
 
-# Round 4 ----
+# Round 5 ----
 ## Make our tibble ----
 
 #find state using college_rankings database
@@ -784,7 +811,7 @@ ggsave(filename = "plots/rd4_6_local_region_player_value.png")
 # variance pattern reverse of expected since less hometown bias means smaller sample size
 
 
-#Round 5: College Conference/Performance ----
+#Round 6: College Conference/Performance ----
 draft_cfb <- draft_geo |>
   mutate(
     conference = fct_collapse(college,
@@ -982,20 +1009,6 @@ draft_cfb |>
   ) 
 ggsave(filename = "plots/rd5_9_size_value_position.png")
 
-# Round 6: Measurables ----
-#height
-draft |>
-  ggplot(aes(x = height, y = rel_pick_av)) +
-  geom_point(alpha = 0.1) +
-  geom_smooth(method = "loess") +
-  facet_wrap(~pos_group) +
-  labs(
-    x = "height (inches)",
-    y = "draft pick value (over expectation)",
-    caption = "Data: ESPN, Sports Reference",
-    title = "Draft pick value and height distribution by position"
-  ) 
-ggsave(filename = "plots/rd6_1_height.png")
 
 #weight
 draft |>
@@ -1738,6 +1751,20 @@ if_else(year > 2013,
 }
 
 
+# Extra: Measurables ----
+#height
+draft |>
+  ggplot(aes(x = height, y = rel_pick_av)) +
+  geom_point(alpha = 0.1) +
+  geom_smooth(method = "loess") +
+  facet_wrap(~pos_group) +
+  labs(
+    x = "height (inches)",
+    y = "draft pick value (over expectation)",
+    caption = "Data: ESPN, Sports Reference",
+    title = "Draft pick value and height distribution by position"
+  ) 
+ggsave(filename = "plots/rd6_1_height.png")
 
 
 
