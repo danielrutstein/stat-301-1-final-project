@@ -166,23 +166,6 @@ ggsave(filename = "pos_group_value.png")
 
 # Round 1 ----
 ## Draft Success vs Team Success ----
-draft |>
-  group_by(team, year) |>
-  summarize(
-    avg_value = sum(rel_w_av, na.rm = TRUE)/n(),
-    games_won = mean(win)
-  ) |> arrange(desc(avg_value))|> ggplot(aes(x = games_won, y = avg_value)) +
-  geom_boxplot(aes(group = cut_width(games_won, 1))) +
-  scale_x_continuous(n.breaks = 12) +
-  labs(
-    x = "wins",
-    y = "average draft pick value",
-    caption = "Data: Sports Reference",
-    title = "Mapping of relationship between draft success and team success"
-  ) 
-ggsave(filename = "plots/rd1_wins_by_value.png")
-
-
 draft |> 
   summarize(
     avg_value = sum(rel_w_av, na.rm = TRUE)/n(),
@@ -198,7 +181,7 @@ draft |>
     caption = "Data: Sports Reference",
     title = "Mapping of relationship between draft success and team success"
   ) 
-ggsave(filename = "plots/rd1_team_by_value.png")
+ggsave(filename = "plots/rd1_1_team_by_value.png")
 
 
 draft |> 
@@ -214,9 +197,25 @@ draft |>
     x = "average draft pick value over expectation",
     y = "win percentage",
     caption = "Data: Sports Reference",
-    title = "Mapping of relationship between draft success and team success"
+    title = "Mapping of relationship between draft success (over expectation) and team success"
   ) 
-ggsave(filename = "plots/rd1_3_team_by__rel_value.png")
+ggsave(filename = "plots/rd1_2_team_by_rel_value.png")
+
+draft |>
+  group_by(team, year) |>
+  summarize(
+    avg_value = sum(rel_pick_av, na.rm = TRUE)/n(),
+    games_won = mean(win)
+  ) |> arrange(desc(avg_value))|> ggplot(aes(x = games_won, y = avg_value)) +
+  geom_boxplot(aes(group = cut_width(games_won, 1))) +
+  scale_x_continuous(n.breaks = 12) +
+  labs(
+    x = "wins",
+    y = "average draft pick value",
+    caption = "Data: Sports Reference",
+    title = "Rookie class value over expectation and team wins"
+  ) 
+ggsave(filename = "plots/rd1_3_wins_by_value.png")
 
 
 ## Playoffs & Super Bowls ----
@@ -258,7 +257,7 @@ draft_cycle |>
     x = "wins",
     y = "rookie class value over expectation",
     caption = "Data: Sports Reference",
-    title = "Rookie Contract Class Value (over expectation) and Team Wins"
+    title = "Rookie contract class value (over expectation) and team wins"
   ) 
   ggsave(filename = "plots/rd1_4_cycle_by_wins.png")
 
@@ -267,13 +266,15 @@ draft_cycle |>
   ggplot(aes(x = rc_cycle_value, y = wins)) +
   facet_wrap(~year) +
   geom_smooth(method = "lm", formula = y~x, alpha = 0.3, color = "grey75") +
-  geom_mean_lines(aes(x0 = 0, y0 = 8)) +
-  geom_nfl_logos(aes(team_abbr = team, width = 0.065)) +
+  geom_hline(yintercept = 8, lty=2) +
+  geom_vline(xintercept = 0, lty=2) +
+  geom_nfl_logos(aes(team_abbr = team, width = 0.065, alpha = post)) +
+  scale_alpha_discrete(range = c(0.6, 0.9)) +
   labs(
     x = "rookie class value over expectation",
     y = "wins",
     caption = "Data: Sports Reference",
-    title = "Rookie Contract Class Value (over expectation) and Team Wins"
+    title = "Rookie contract class value (over expectation) and team wins"
   ) 
 ggsave(filename = "plots/rd1_5_cycle_by_season.png")
 
@@ -286,24 +287,26 @@ draft_cycle |>
     x = "Super Bowl Team?",
     y = "rookie class value over expectation",
     caption = "Data: Sports Reference",
-    title = "Rookie Contract Class Value (over expectation) in Super Bowl Teams"
+    title = "Rookie contract class value (over expectation) in Super Bowl teams"
   ) 
 ggsave(filename = "plots/rd1_6_sb_boolean.png")
 
 draft_cycle |>
   filter(!(sb == "no")) |>
+  mutate(sb_winner = if_else(sb == "W", TRUE, FALSE)) |>
   ggplot(aes(x = fct_reorder(team, -rc_cycle_value), y = rc_cycle_value)) +
-  geom_col(aes(color = team, fill = if_else(sb == "W", team, "grey"), width = 0.5)) +
+  geom_col(aes(color = team, fill = team, width = 0.5, alpha = sb_winner)) +
   facet_wrap(~year, scales = "free_x") +
   geom_hline(aes(yintercept = 0))+
   scale_color_nfl(type = "secondary") +
   scale_fill_nfl() +
+  scale_alpha_discrete(range = c(0.5,0.9)) +
   theme(axis.text.x=element_nfl_logo(size = 1))  +
   labs(
     x = "team",
     y = "rookie class value over expectation",
     caption = "Data: Sports Reference",
-    title = "Rookie Contract Class Value (over expectation) in Super Bowl Teams"
+    title = "Rookie contract class value (over expectation) in Super Bowl teams"
   ) 
 ggsave(filename = "plots/rd1_7_sb_cycle.png")
 
@@ -1018,7 +1021,7 @@ draft |>
   geom_smooth(method = "loess") +
   facet_wrap(~pos_group) +
   labs(
-    x = "BMI (kg/m^2)",
+    x = "Body Mass Index",
     y = "draft pick value (over expectation)",
     caption = "Data: ESPN, Sports Reference",
     title = "Draft pick value and BMI distribution by position"
@@ -1034,7 +1037,7 @@ draft |>
   geom_boxplot() +
   labs(
       x = "year",
-      y = "BMI (kg/m^2)",
+      y = "Body Mass Index",
       caption = "Data: ESPN, Sports Reference",
       title = "Change in BMI distribution in NFL Draft over 2010s decade"
   ) 
@@ -1086,7 +1089,13 @@ draft_espn <- draft |>
 #let's see distribution
 draft_espn |>
   ggplot(aes(x = w_diff)) +
-  geom_histogram(bins = 100)
+  geom_histogram(bins = 100) +
+  labs(
+    x = "weighted difference",
+    caption = "Data: ESPN, Sports Reference",
+    title = "Distiribution of difference between ESPN consensus ranking and NFL draft order"
+  ) 
+ggsave(filename = "plots/rd7_1_difference_distribution.png")
 
 # makes sense since ESPN players can be surpassed by undrafted players in ranking
 # so NFL expectation should be lower than ESPN's leading to a center below 0
@@ -1094,13 +1103,26 @@ draft_espn |>
 #let's see how this shakes out
 draft_espn |>
   ggplot(aes(x = w_diff, y = rel_pick_av)) +
-  geom_point(alpha = 0.3)
+  geom_point(alpha = 0.3) +
+  labs(
+    x = "weighted difference",
+    y = "draft pick value (over expectation)",
+    caption = "Data: ESPN, Sports Reference",
+    title = "Draft pick value by weighted difference between ESPN and NFL"
+  ) 
+ggsave(filename = "plots/rd7_2_difference_value_distribution.png")
 
 draft_espn |>
-  mutate(espn_likes = if_else(w_diff >= median(w_diff), "ESPN", "NFL")) |> 
-  ggplot(aes(x = rel_w_av, color = espn_likes, fill = espn_likes)) +
+  mutate(organization = if_else(w_diff >= median(w_diff), "ESPN", "NFL")) |> 
+  ggplot(aes(x = rel_w_av, color = organization, fill = organization)) +
   geom_density(alpha = 0.3) +
-  facet_wrap(~pos_group)
+  facet_wrap(~pos_group) +
+  labs(
+    x = "draft pick value (over expectation)",
+    caption = "Data: ESPN, Sports Reference",
+    title = "Distribution of draft pick value for ESPN-preferred and NFL-preferred players"
+  ) 
+ggsave(filename = "plots/rd7_3_preference_value_distribution.png")
 
 #qb has a pretty significant difference
 draft_espn |>
@@ -1111,33 +1133,46 @@ draft_espn |>
 # But is this really accounting for our question? We only want strong differences.
 draft_espn |>
   mutate(
-    strong_preference = if_else(
-      w_diff >= quantile(w_diff, .9), "ESPN",
-      if_else(w_diff <= quantile(w_diff, .1), "NFL", "Neutral"))
+    espn_opinion = if_else(
+      w_diff >= quantile(w_diff, .9), "steal",
+      if_else(w_diff <= quantile(w_diff, .1), "reach", "neutral"))
   ) |> 
-  ggplot(aes(x = rel_pick_av, color = strong_preference, fill = strong_preference)) +
+  ggplot(aes(x = rel_pick_av, color = fct_relevel(espn_opinion, "steal"), fill = fct_relevel(espn_opinion, "steal"))) +
   geom_density(alpha = 0.3) +
-  facet_wrap(~pos_group)
+  facet_wrap(~pos_group) +
+  labs(
+    x = "draft pick value (over expectation)",
+    caption = "Data: ESPN, Sports Reference",
+    title = "Distribution of draft pick value with strong differences btwn. ESPN and NFL"
+  ) 
+ggsave(filename = "plots/rd7_4_reach_steal_distribution.png")
 
 draft_espn |>
   mutate(
-    strong_preference = if_else(
-      w_diff >= quantile(w_diff, .9), "ESPN",
-      if_else(w_diff <= quantile(w_diff, .1), "NFL", "Neutral"))
+    espn_opinion = if_else(
+      w_diff >= quantile(w_diff, .9), "steal",
+      if_else(w_diff <= quantile(w_diff, .1), "reach", "neutral"))
   ) |>  
-  ggplot(aes(x = strong_preference, y = rel_pick_av)) +
+  ggplot(aes(x = fct_relevel(espn_opinion, "steal"), y = rel_pick_av)) +
   geom_boxplot() +
-  facet_wrap(~pos_group)
+  facet_wrap(~pos_group) +
+  labs(
+    x = "ESPN opinion",
+    y = "draft pick value (over expectation)",
+    caption = "Data: ESPN, Sports Reference",
+    title = "Distribution of draft pick value with strong differences btwn. ESPN and NFL"
+  ) 
+ggsave(filename = "plots/rd7_5_reach_steal_bivariate_distribution.png")
 
 # What about teams that ESPN consensus "likes" and "doesn't like", how do they fare?
 draft_espn |> 
   summarize(
-    consensus_rating = sum(w_diff)/n(),
+    espn_rating = sum(w_diff)/n(),
     avg_value = sum(rel_pick_av, na.rm = TRUE)/n(),
     .by = team
-  ) |> ggplot(aes(x = consensus_rating, y = avg_value)) +
+  ) |> ggplot(aes(x = espn_rating, y = avg_value)) +
   geom_smooth(method = "lm", formula = y~x, alpha = 0.3, color = "grey75") +
-  geom_mean_lines(aes(x0 = mean(consensus_rating), y0 = 0)) +
+  geom_mean_lines(aes(x0 = espn_rating, y0 = 0)) +
   geom_nfl_logos(aes(team_abbr = team), width = 0.065, alpha = 0.7) +
   labs(
     x = "agreement with ESPN",
@@ -1145,6 +1180,7 @@ draft_espn |>
     caption = "Data: ESPN, Sports Reference",
     title = "Mapping of relationship between agreement with ESPN and draft success"
   ) 
+ggsave(filename = "plots/rd7_6_reach_steal_team.png")
 
 # seems like teams teams that agree more with consensus do better, good for ESPN!
 draft_espn |> 
@@ -1160,8 +1196,9 @@ draft_espn |>
     x = "agreement with ESPN",
     y = "average draft pick value over expectation",
     caption = "Data: ESPN, Sports Reference",
-    title = "Mapping of relationship between agreement with ESPN and draft success"
+    title = "Agreement with ESPN, by draft class, and draft pick success"
   ) 
+  ggsave(filename = "plots/rd7_7_espn_draft_class.png")
 
 # Appears strong agreement relates with more success, but strong disagreement does not
 # Consensus "steals" more predictive than consensus "reaches"

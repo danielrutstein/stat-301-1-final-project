@@ -242,7 +242,15 @@ Furthermore, @fig-pg-value demonstrates that dropoffs in value by round differ b
 ### Round 1: The Main Event 
 **Does drafting well actually matter?**
 
-![Mapping of Relationship between draft success and team success](plots/rd1_1_wins_by_value.png){#fig-rd1_1}
+![Mapping of Relationship between draft success and team success 1](plots/rd1_1_team_by_value.png){#fig-rd1-1}
+![Mapping of Relationship between draft success and team success 2](plots/rd1_2_team_by_rel_value.png){#fig-rd1-2}
+
+![Mapping of Relationship between draft success and team success 3](plots/rd1_3_wins_by_value.png){#fig-rd1-3}
+
+![Mapping of Relationship between draft success and team success 4](plots/rd1_4_cycle_by_wins.png){#fig-rd1-4}
+![Rookie contract class value (over expectation) and team wins](plots/rd1_5_cycle_by_season.png){#fig-rd1-5}
+![Rookie contract class value (over expectation) and team wins](plots/rd1_6_sb_boolean.png){#fig-rd1-6}
+![Rookie contract class value (over expectation) and team wins](plots/rd1_7_sb_cycle.png){#fig-rd1-7}
 
 ### Round 2: Age Takes the Stage
 **What patterns can we find with player age when drafted and performance?**
