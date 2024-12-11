@@ -593,8 +593,8 @@ draft_geo <- draft |>
 draft_geo <- draft_geo |>
   filter(college_st %in% state.abb) |>
   mutate(team_st = fct_collapse(team,
-      "CA" = c("SFO", "LAR", "LAC"),
-      "FL" = c("MIA", "TAM", "JAX"),
+      "CA" = c("SF", "LAR", "LAC"),
+      "FL" = c("MIA", "TB", "JAX"),
       "PA" = c("PHI", "PIT"),
       "NJ" = c("NYG", "NYJ"),
       "OH" = c("CLE", "CIN"),
@@ -602,20 +602,20 @@ draft_geo <- draft_geo |>
       "MD" = c("BAL", "WAS"),
       "GA" = "ATL",
       "NC" = "CAR",
-      "MA" = "NWE",
+      "MA" = "NE",
       "NY" = "BUF",
-      "LA" = "NOR",
+      "LA" = "NO",
       "TN" = "TEN",
       "NY" = "BUF",
       "MI" = "DET",
       "IN" = "IND",
       "IL" = "CHI",
-      "WI" = "GNB",
+      "WI" = "GB",
       "MN" = "MIN",
-      "MO" = "KAN",
+      "MO" = "KC",
       "CO" = "DEN",
       "AZ" = "ARI",
-      "NV" = "LVR",
+      "NV" = "LV",
       "WA" = "SEA"
     )
   )
@@ -636,7 +636,13 @@ draft_geo |>
   mutate(
     state_match = if_else(team_st == college_st, TRUE, FALSE)
   ) |> ggplot(aes(x = rel_pick_av, color = state_match)) +
-  geom_density() 
+  geom_density() +
+  labs(
+    title = "Draft pick success of players drafted in same state they played in college",
+    caption = "Data: Sports Reference",
+    x = "draft pick value (over expectation)"
+  )
+ggsave(filename = "plots/rd4_1_same_state_value.png")
   
 
 ## by region ----
@@ -667,19 +673,42 @@ draft_geo_r <- draft_geo_r |>
 
 draft_geo_r |>
   ggplot(aes(x = round, fill = region_match)) +
-  geom_bar()
+  geom_bar() +
+  scale_x_continuous(n.breaks = 7) +
+  labs(
+    title = "Distribution of players drafted in same region as their college by round",
+    caption = "Data: Sports Reference",
+    x = "round"
+  )
+ggsave(filename = "plots/rd4_2_same_region_round.png")
 
 draft_geo_r |>
   ggplot(aes(x = rel_pick_av, color = region_match)) +
   geom_density() +
-  facet_wrap(~round)
+  facet_wrap(~round) +
+  labs(
+    title = "Value distribution of players drafted in same region as their college by round",
+    caption = "Data: Sports Reference",
+    x = "draft pick value (over expectation)"
+  ) 
+ggsave(filename = "plots/rd4_3_same_region_round_value.png")
 
 draft_geo_r |>
   filter(region_match == TRUE) |>
+  mutate(team_region = fct_infreq(team_region)) |>
   ggplot(aes(x = team)) +
-  geom_bar(aes(color = region_match, fill = team), width = 0.5) +
-  scale_color_nfl(type = "secondary") +
-  scale_fill_nfl(alpha = 0.4)
+    geom_bar(aes(color = team, fill = team), width = 0.5) +
+    facet_wrap(~team_region, scales = "free_x") +
+    scale_color_nfl(type = "secondary") +
+    scale_fill_nfl(alpha = 0.4) +
+    theme(axis.text.x=element_nfl_logo(size = 0.6)) +
+    labs(
+      title = "Number of local players drafted by team in 2010s deecade",
+      caption = "Data: Sports Reference",
+      x = "team",
+      y = "local players"
+    )
+ggsave(filename = "plots/rd4_4_same_region_team_freq.png")
 
 
 #but some areas of the country produce more draft prospects than others, so we must adjust for the strength of the region the team plays in
@@ -729,11 +758,12 @@ hometown_bias |>
   geom_mean_lines(aes(x0 = mean(rel_match_pct), y0 = 0)) +
   geom_nfl_logos(aes(team_abbr = team), width = 0.065, alpha = 0.7) +
   labs(
-    x = "hometown bias",
+    x = "local preference",
     y = "average draft pick value over expectation",
-    caption = "Data: ESPN, Sports Reference",
-    title = "Mapping of relationship between agreement with ESPN and draft success"
+    caption = "Data: Sports Reference",
+    title = "Mapping of relationship between local preference and draft success"
   ) 
+ggsave(filename = "plots/rd4_5_local_region_preference.png")
 
 hometown_bias |>
   filter(matches >= quantile(matches, 0.25)) |>
@@ -742,28 +772,13 @@ hometown_bias |>
   geom_mean_lines(aes(x0 = mean(rel_match_pct), y0 = 0)) +
   geom_nfl_logos(aes(team_abbr = team), width = 0.065, alpha = 0.7) +
   labs(
-    x = "hometown bias",
+    x = "local preference",
     y = "average hometown pick value over expectation",
-    caption = "Data: ESPN, Sports Reference",
-    title = "Mapping of relationship between agreement with ESPN and draft success"
+    caption = "Data: Sports Reference",
+    title = "Mapping of relationship between local preference and draft success on local players"
   ) 
+ggsave(filename = "plots/rd4_6_local_region_player_value.png")
 # variance pattern reverse of expected since less hometown bias means smaller sample size
-
-
-
-# Looks like they don't become superstars. Let's check that.
-draft_geo_r |>
-  mutate(
-    honors = if_else(
-      all_pro > 0, "All-Pro",
-      if_else(pro_bowl > 0, "Pro Bowl","none"),
-    ),
-    honors = fct_relevel(honors, "none", "Pro Bowl")
-  ) |> group_by(honors) |>
-  summarize(
-    n = n(),
-    match_pct = sum(region_match)/n()
-  )
 
 
 #Round 5: College Conference/Performance ----
@@ -790,20 +805,34 @@ draft_cfb |>
 
 draft_cfb |>
   ggplot(aes(x = conference, y = rel_pick_av)) +
-  geom_boxplot()
+  geom_boxplot() +
+  labs(
+    x = "college conference",
+    y = "draft pick value (over expectation)",
+    caption = "Data: Sports Reference",
+    title = "Relationship between college conference and draft pick value (over expectation)"
+  ) 
+ggsave(filename = "plots/rd5_1_conference_player_value.png")
 
 # let's see by position
 draft_cfb |>
   ggplot(aes(x = rel_pick_av, y = conference)) +
   geom_boxplot() +
-  geom_mean_lines(aes(x0 = median(rel_pick_av))) +
-  facet_wrap(~pos_group)
+  facet_wrap(~pos_group) +
+  geom_vline(xintercept = 0) +
+  labs(
+    x = "draft pick value (over expectation)",
+    y = "college conference",
+    caption = "Data: Sports Reference",
+    title = "Relationship between college conference and positional value (over expectation)"
+  ) 
+ggsave(filename = "plots/rd5_2_conference_player_value_position.png")
 
 ## National Champs Analysis ----
 champs <- c("Auburn 2011", "Alabama 2012", "Alabama 2013", "Florida St. 2014", "Ohio St. 2015", "Alabama 2016", "Clemson 2017", "Alabama 2018", "Clemson 2019", "LSU 2020")
 draft_cfb <- draft_cfb |>
   mutate(
-      cfb_champ = if_else(str_c(college, " ", year) %in% champs , TRUE, FALSE)
+      champion = if_else(str_c(college, " ", year) %in% champs , TRUE, FALSE)
   ) 
 
 draft_cfb |> 
@@ -811,18 +840,31 @@ draft_cfb |>
     n = n(),
     exp_value = mean(rel_w_av),
     rel_value = mean(rel_pick_av),
-    .by = cfb_champ
+    .by = champion
   )
 
-draft_cfb |>
-  ggplot(aes(x = rel_w_av, color = cfb_champ)) +
-  geom_density()
+
+draft_cfb |> 
+  ggplot(aes(x = champion, y = pick)) +
+  scale_y_reverse(n.breaks = 8) +
+  geom_boxplot() +
+  labs(
+    x = "champion",
+    caption = "Data: Sports Reference",
+    title = "Average draft pick of CFB champions"
+  ) 
+ggsave(filename = "plots/rd5_3_champion_pick_distribution.png")
 
 draft_cfb |>
-  mutate(
-    cfb_champ = if_else(str_c(college, " ", year) %in% champs , TRUE, FALSE)
-  ) |> ggplot(aes(x = cfb_champ, y = pick)) +
-  geom_boxplot()
+  ggplot(aes(x = rel_pick_av, color = champion)) +
+  geom_density() +
+  labs(
+    x = "draft pick value (over expectation)",
+    caption = "Data: Sports Reference",
+    title = "Draft pick value distribution of college football champions"
+  ) 
+ggsave(filename = "plots/rd5_4_champion_value_distribution.png")
+
 
 ## let's see how this changes with "big", or "feeder", schools
 draft_cfb |>
@@ -856,7 +898,13 @@ draft_cfb |>
   filter(feeder == TRUE) |>
   ggplot(aes(x = rel_pick_av)) +
   geom_density() +
-  facet_wrap(~college)
+  facet_wrap(~college) +
+  labs(
+    x = "draft pick value (over expectation)",
+    caption = "Data: Sports Reference",
+    title = "Draft pick value distribution of Top 10 NFL \"feeder\" schools"
+  ) 
+ggsave(filename = "plots/rd5_5_feeder_distribution.png")
 
 # Let's expand to overall school size. We'll define schools as big, medium, or small
 draft_cfb |>
@@ -867,7 +915,14 @@ draft_cfb |>
     .by = college
   ) |> ggplot(aes(x = size, y = draft_pick)) +
   geom_boxplot() +
-  scale_y_reverse()
+  scale_y_reverse()  +
+  labs(
+    x = "program size",
+    y = "draft pick",
+    caption = "Data: Sports Reference",
+    title = "Draft pick distribution by college football program size"
+  ) 
+ggsave(filename = "plots/rd5_6_size_pick_distribution.png")
 
 #what about relative value?
 draft_cfb |>
@@ -877,7 +932,15 @@ draft_cfb |>
     rel_value = rel_pick_av,
     .by = college
   ) |> ggplot(aes(x = size, y = rel_value)) +
-  geom_boxplot() 
+  geom_boxplot()  +
+  labs(
+    x = "program size",
+    y = "draft pick value (over expectation)",
+    caption = "Data: Sports Reference",
+    title = "Draft pick value distribution by college football program size"
+  ) 
+ggsave(filename = "plots/rd5_7_size_value_distribution.png")
+  
 
 # looks like draft pick range the driver of changes, so let's compare by round 
 draft_cfb |>
@@ -889,7 +952,14 @@ draft_cfb |>
     .by = college
   ) |> ggplot(aes(x = rel_value, color = size, fill = size)) +
   geom_density(alpha = 0.3) + 
-  facet_wrap(~round)
+  facet_wrap(~round)  +
+  labs(
+    x = "draft pick value (over expectation)",
+    caption = "Data: Sports Reference",
+    title = "Prorgam size and draft pick value by round"
+  ) 
+ggsave(filename = "plots/rd5_8_size_value_round.png")
+
 
 #and let's see position
 draft_cfb |>
@@ -901,22 +971,42 @@ draft_cfb |>
     .by = college
   ) |> ggplot(aes(x = rel_value, color = size, fill = size)) +
   geom_density(alpha = 0.3) + 
-  facet_wrap(~pos_group)
+  facet_wrap(~pos_group) +
+  labs(
+    x = "draft pick value (over expectation)",
+    caption = "Data: Sports Reference",
+    title = "Prorgam size and draft pick value by position"
+  ) 
+ggsave(filename = "plots/rd5_9_size_value_position.png")
 
 # Round 6: Measurables ----
 #height
 draft |>
   ggplot(aes(x = height, y = rel_pick_av)) +
   geom_point(alpha = 0.1) +
-  geom_smooth(method = "lm") +
-  facet_wrap(~pos_group)
+  geom_smooth(method = "loess") +
+  facet_wrap(~pos_group) +
+  labs(
+    x = "height (inches)",
+    y = "draft pick value (over expectation)",
+    caption = "Data: ESPN, Sports Reference",
+    title = "Draft pick value and height distribution by position"
+  ) 
+ggsave(filename = "plots/rd6_1_height.png")
 
 #weight
 draft |>
   ggplot(aes(x = weight, y = rel_pick_av)) +
   geom_point(alpha = 0.1) +
-  geom_smooth(method = "lm") +
-  facet_wrap(~pos_group)
+  geom_smooth(method = "loess") +
+  facet_wrap(~pos_group) +
+  labs(
+    x = "weight (pounds)",
+    y = "draft pick value (over expectation)",
+    caption = "Data: ESPN, Sports Reference",
+    title = "Draft pick value and weight distribution by position"
+  ) 
+ggsave(filename = "plots/rd6_2_weight.png")
 
 #bmi
 draft |>
@@ -925,8 +1015,15 @@ draft |>
   ) |>
   ggplot(aes(x = bmi, y = rel_pick_av)) +
   geom_point(alpha = 0.1) +
-  geom_smooth(method = "lm") +
-  facet_wrap(~pos_group)
+  geom_smooth(method = "loess") +
+  facet_wrap(~pos_group) +
+  labs(
+    x = "BMI (kg/m^2)",
+    y = "draft pick value (over expectation)",
+    caption = "Data: ESPN, Sports Reference",
+    title = "Draft pick value and BMI distribution by position"
+  ) 
+ggsave(filename = "plots/rd6_3_bmi.png")
 
 # are players getting bigger or smaller?
 draft |>
@@ -934,8 +1031,14 @@ draft |>
     bmi = weight * 730 / (height^2)
   ) |>
   ggplot(aes(x = as.factor(year), y = bmi)) +
-  geom_boxplot() 
-  facet_wrap(~pos_group)
+  geom_boxplot() +
+  labs(
+      x = "year",
+      y = "BMI (kg/m^2)",
+      caption = "Data: ESPN, Sports Reference",
+      title = "Change in BMI distribution in NFL Draft over 2010s decade"
+  ) 
+  ggsave(filename = "plots/rd6_4_bmi_over_time.png")
 
 
 # Round 7: The "Experts" ----
@@ -1533,7 +1636,19 @@ draft |>
   geom_point()
 
 
-
+# Looks like they don't become superstars. Let's check that.
+draft_geo_r |>
+  mutate(
+    honors = if_else(
+      all_pro > 0, "All-Pro",
+      if_else(pro_bowl > 0, "Pro Bowl","none"),
+    ),
+    honors = fct_relevel(honors, "none", "Pro Bowl")
+  ) |> group_by(honors) |>
+  summarize(
+    n = n(),
+    match_pct = sum(region_match)/n()
+  )
 
 
 |> pivot_wider(
