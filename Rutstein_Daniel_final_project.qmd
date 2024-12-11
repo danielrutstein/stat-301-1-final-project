@@ -253,11 +253,25 @@ Furthermore, @fig-pg-value demonstrates that dropoffs in value by round differ b
 ## The EDA Draft
 
 ### Round 1: The Main Event 
-**Does drafting well actually matter?**
+**Does drafting well actually matter?** 
+
+The NFL draft is the most prominent way NFL teams acquire players. In theory, it is the cornerstone of any football team, as players are required to sign a four-year contract with the team that drafts them at a predetermined wage set by the NFL’s Collective Bargaining Agreement (CBA). For first-round picks, which have the highest expected value, teams can even opt into adding a fifth year. Since teams are restricted to a fixed amount of spending on salaries (due to the NFL salary cap), successful draft picks provide an extended window where their portion of the salary pie is much smaller than their market value would dictate. This allows teams to sign more of their veteran players to contract extensions and acquire more players from other teams in free agency, strengthening the roster relative to teams who do not have this flexibility. 
+
+To validate the strength of this advantage, we can ask a simple question: *do teams that draft better players win more?*
 
 ![Mapping of Relationship between draft success and team success 1](plots/rd1_1_team_by_value.png){#fig-rd1-1}
-![Mapping of Relationship between draft success and team success 2](plots/rd1_2_team_by_rel_value.png){#fig-rd1-2}
+According to this comparison, it appears there is at least a weak correlation since R = 0.302. However, two factors suggest the correlation could be stronger:
 
+a) Our independent variable is average player value, independent of where they were drafted. This is problematic because draft order is set in reverse order of team performance from the previous season in order to balance out the competition. Thus, independent of any trades, the teams with the lowest win percentages have the highest expected value draft picks.
+
+b) Three of the biggest positive outliers (New England Patriots, Green Bay Packers, Pittsburgh Steelers), drafted the #1, #4, and #26 best players ever by the value metric we are using for the model (Tom Brady, Aaron Rodgers, Ben Roethlisberger) in the 2000s decade. Since these players dominated the 2010s decade, and our research question is if teams that draft better players win more, we can reason that these outliers would fit the model much better if we incorporated draft picks before 2010 that played after into our model.
+
+
+Let's test factor **a** to see how the relationship changes when weighting value relative to expectation
+![Mapping of Relationship between draft success and team success 2](plots/rd1_2_team_by_rel_value.png){#fig-rd1-2}
+With value now relative to the expected value of a team's draft picks, we get a much stronger correlation coefficient of R = 0.724. The outliers in factor **b** above remain, while the negative outliers (who have been given many high expected value picks because of their low win percentage) converge much closer to the line of best fit. While correlation is not extremely strong, there is a clear positive relationship between teams that draft well and teams that perform well on the field. 
+
+While it appears that drafting well over time is linked with sustaining success, we are yet to evaluate whether success in the draft translates to a near-term expected increase in performance. We can start with a simple exploration of the relationship between the strength of a rookie class and team performance during their rookie year.
 ![Mapping of Relationship between draft success and team success 3](plots/rd1_3_wins_by_value.png){#fig-rd1-3}
 
 ```{r}
