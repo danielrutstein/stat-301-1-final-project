@@ -74,7 +74,8 @@ This is the link to my main database, which is a compilation of 10 NFL Draft Cla
 *How does draft success relate to the ultimate goal of every NFL team: winning a Super Bowl?*
 
 **Round 3: Age Takes the Stage**\
-*What patterns can we find with player age when drafted and performance?* 
+*Are older players "higher floor", younger players "higher upside" in the draft?*
+ 
 
 **Round 4: Coaching Correlations**\
 *How does draft pick success relate to NFL Head Coach regime success/failure?*
@@ -260,6 +261,7 @@ The NFL draft is the most prominent way NFL teams acquire players. In theory, it
 To validate the strength of this advantage, we can ask a simple question: *do teams that draft better players win more?*
 
 ![Mapping of Relationship between draft success and team success 1](plots/rd1_1_team_by_value.png){#fig-rd1-1}
+
 According to this comparison, it appears there is at least a weak correlation since R = 0.302. However, two factors suggest the correlation could be stronger:
 
 a) Our independent variable is average player value, independent of where they were drafted. This is problematic because draft order is set in reverse order of team performance from the previous season in order to balance out the competition. Thus, independent of any trades, the teams with the lowest win percentages have the highest expected value draft picks.
@@ -268,7 +270,9 @@ b) Three of the biggest positive outliers (New England Patriots, Green Bay Packe
 
 
 Let's test factor *a)* to see how the relationship changes when weighting value relative to expectation
+
 ![Mapping of Relationship between draft success and team success 2](plots/rd1_2_team_by_rel_value.png){#fig-rd1-2}
+
 With value now relative to the expected value of a team's draft picks, we get a much stronger correlation coefficient of R = 0.724. The outliers in factor *b)* above remain, while the negative outliers (who have been given many high expected value picks because of their low win percentage) converge much closer to the line of best fit. While correlation is not extremely strong, there is a clear positive relationship between teams that draft well and teams that perform well on the field. 
 
 While it appears that drafting well over time is linked with sustaining success, we are yet to evaluate whether success in the draft translates to a near-term expected increase in performance. We can start with a simple exploration of the relationship between the strength of a rookie class and team performance during their rookie year.
@@ -355,8 +359,8 @@ Let's begin by evaluating the baseline requirement to win a Super Bowl: making t
 ```{r}
 r_14_20 <- draft_cycle |>
   summarize(
-    plus_playoff_classes = sum(post == TRUE & rc_cycle_value > 0),
-    R_winning = cor(wins, rc_cycle_value)
+    `+ playoff class` = sum(post == TRUE & rc_cycle_value > 0),
+    `R of winning` = cor(wins, rc_cycle_value)
   )
 ```
 
@@ -379,7 +383,53 @@ Although the sample size is small, we will finalize Round 2 by exploring the rel
 A surprising finding is that 4 of the 7 winners had a lower rookie contract class value than their opponent. While this is not what we would expect, the sample size is quite small at n = 7. Furthermore, the Super Bowl result itself is very high variance, as teams that qualify for the game are the 2 most successful teams of 32, and thus typically evenly matched.
 
 ### Round 3: Age Takes the Stage
-**What patterns can we find with player age when drafted and performance? **
+**Are older players "higher floor", younger players "higher upside" in the draft?**
+Many people in NFL Draft circles assume that the older a player is when they get drafted, the more "pro-ready" they are. "Pro-ready" is a term often attributed to players who evaluators believe have a higher floor and lower ceiling than other prospects. If this assumption is correct, we would expect that older players have a higher median, similar mean, and lower variance than younger players. 
+
+```{r}
+draft_age <- draft |>
+filter(!is.na(age)) |>
+mutate(
+  age_fct = fct_collapse(
+    as.factor(age),
+    "20-21" = c("20","21"),
+    "24-28" = c("24", "25", "26", "27", "28"),
+    )
+  ) 
+
+draft_age_sum <- draft_age |>
+  summarize(
+    n = n(),
+    mean = mean(rel_w_av),
+    rel_mean = mean(rel_pick_av),
+    median = median(rel_w_av),
+    rel_median = median(rel_pick_av),
+    Q1 = quantile(rel_w_av, 0.25),
+    rel_Q1 = quantile(rel_pick_av, 0.25),
+    sd = sd(rel_w_av),
+    rel_sd = sd(rel_pick_av),
+    .by = age_fct
+  ) |> arrange(age_fct)
+```
+
+```{r}
+#| label: tbl-rd3-1
+#| tbl-cap: "Summary Statistics, Player value in NFL draft by age"
+
+kable(draft_age_sum, digits=2)
+```
+The assumption of a higher variance is supported by the data, but the assumption of a higher "floor" is less so. While the 25th percentile value is slightly lower for younger players, the relative mean and relative median is greater. Thus, while the complete "bust" probability (significantly below expectation) may be greater for younger players, the "average" (50th percentile) outcome is expected to be lower for older players. 
+
+Since the unweighted values appear to be much higher for younger player while the weighted values are similar, younger players must be drafted earlier on average than older players. Grouping
+![Distribution of player value by age and round](plots/rd3_1_age_round.png){#fig-rd3-1}
+
+
+![Distribution of position group value by age](plots/rd3_2_age_pos_value.png){#fig-rd3-2}
+![Distribution of position group value by age](plots/rd3_3_age_pos_rel_value.png){#fig-rd3-3}
+![Distribution of position group value by age](plots/rd3_4_superstar_by_age.png){#fig-rd3-4}
+![Mapping of relationship between average age and team success](plots/rd3_5_age_team_wins.png){#fig-rd3-5}
+
+![Mapping of relationship between average age and draft success](plots/rd3_6_age_team_value.png){#fig-rd3-6}
 
 ### Round 4: Coaching Correlations
 **How does draft pick success relate to NFL Head Coach regime success/failure?**
